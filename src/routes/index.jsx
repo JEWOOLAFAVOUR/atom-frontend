@@ -1,22 +1,22 @@
-import React, { useEffect } from 'react';
-import { createBrowserRouter, RouterProvider, useLocation, Navigate } from "react-router-dom";
-import HomePage from '../screen/auth/HomePage';
-import ProtectedRoute from './protectedRoute';
-import DashboardLayout from "../screen/Dashboard/components/DashboardLayout";
-import Dashboard from '../screen/Dashboard/dashboard/Dashboard';
-import useAuthStore from '../store/useAuthStore';
-import LoginPage from '../screen/auth/LoginPage';
-
-
+import { useEffect } from "react"
+import { createBrowserRouter, RouterProvider, useLocation } from "react-router-dom"
+import HomePage from "../screen/Auth/HomePage"
+import ProtectedRoute from "./protectedRoute"
+import DashboardLayout from "../screen/dashboard/DashboardLayout"
+import AdminDashboard from "../screen/admin/dashboard/Dashboard"
+import TutorDashboard from "../screen/tutor/dashboard/Dashboard"
+import StudentDashboard from "../screen/student/dashboard/Dashboard"
+import LoginPage from "../screen/auth/LoginPage"
+import useAuthStore from "../store/useAuthStore"
 
 const ScrollToTop = () => {
-    const { pathname } = useLocation();
+    const { pathname } = useLocation()
 
     useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [pathname]);
+        window.scrollTo(0, 0)
+    }, [pathname])
 
-    return null;
+    return null
 }
 
 const RouteWrapper = ({ Component }) => (
@@ -24,26 +24,39 @@ const RouteWrapper = ({ Component }) => (
         <ScrollToTop />
         <Component />
     </>
-);
+)
 
 const RootRouteHandler = () => {
+    return <HomePage />
+}
 
-    return <HomePage />;
-};
+const DashboardHandler = () => {
+    const { user } = useAuthStore()
 
+    if (!user) return null
 
+    switch (user.role) {
+        case "admin":
+            return <AdminDashboard />
+        case "tutor":
+            return <TutorDashboard />
+        case "student":
+        default:
+            return <StudentDashboard />
+    }
+}
 
 const Routes = () => {
     const pageRoutes = [
         {
             path: "",
             element: <RouteWrapper Component={RootRouteHandler} />,
-        }, {
+        },
+        {
             path: "/login",
             element: <RouteWrapper Component={LoginPage} />,
         },
-
-    ];
+    ]
 
     const dashboardRoutes = [
         {
@@ -55,24 +68,58 @@ const Routes = () => {
                     children: [
                         {
                             path: "",
-                            element: <Dashboard />,
+                            element: <DashboardHandler />,
                         },
-                        // Add other dashboard routes here
-
-
-                    ]
-                }
+                        // Admin routes
+                        {
+                            path: "students",
+                            element: <div>Manage Students</div>,
+                        },
+                        {
+                            path: "tutors",
+                            element: <div>Manage Tutors</div>,
+                        },
+                        {
+                            path: "courses",
+                            element: <div>Manage Courses</div>,
+                        },
+                        // Tutor routes
+                        {
+                            path: "schedule",
+                            element: <div>Class Schedule</div>,
+                        },
+                        {
+                            path: "projects",
+                            element: <div>Projects/Assignments</div>,
+                        },
+                        {
+                            path: "curriculum",
+                            element: <div>Curriculum</div>,
+                        },
+                        // Student routes
+                        {
+                            path: "assignments",
+                            element: <div>Assignments</div>,
+                        },
+                        {
+                            path: "attendance",
+                            element: <div>Attendance</div>,
+                        },
+                        // Shared routes
+                        {
+                            path: "settings",
+                            element: <div>Settings</div>,
+                        },
+                    ],
+                },
             ],
         },
     ]
 
-    const router = createBrowserRouter([
-        ...pageRoutes,
-        ...dashboardRoutes,
-    ]);
+    const router = createBrowserRouter([...pageRoutes, ...dashboardRoutes])
 
-    return <RouterProvider router={router} />;
-};
+    return <RouterProvider router={router} />
+}
 
-export default Routes;
+export default Routes
 

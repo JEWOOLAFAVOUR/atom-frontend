@@ -1,30 +1,34 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand"
+import { persist } from "zustand/middleware"
 
 const useAuthStore = create(
     persist(
-        (set, get) => ({
+        (set) => ({
             user: null,
-            token: null,
-            reference: null,
             isAuthenticated: false,
-            setUser: (user) => set({ user, isAuthenticated: !!user }),
-            setToken: (token) => set({ token, isAuthenticated: !!token }),
-            setReference: (reference) => set({ reference }),
-            clearAuth: () => set({ user: null, token: null, isAuthenticated: false }),
-            setPremium: (premium) => set({ premium }),
-            getUser: () => get().user,
-            getToken: () => get().token,
-            updateAvatar: (avatarNumber) =>
+
+            login: (userData) =>
+                set({
+                    user: userData,
+                    isAuthenticated: true,
+                }),
+
+            logout: () =>
+                set({
+                    user: null,
+                    isAuthenticated: false,
+                }),
+
+            updateUser: (userData) =>
                 set((state) => ({
-                    user: state.user ? { ...state.user, avatar: avatarNumber } : null,
-                }))
+                    user: { ...state.user, ...userData },
+                })),
         }),
         {
-            name: 'auth-storage',
-            getStorage: () => localStorage,
-        }
-    )
+            name: "auth-storage",
+        },
+    ),
 )
 
 export default useAuthStore
+

@@ -1,44 +1,38 @@
-'use client'
+"use client"
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from "react"
 
-const ThemeProviderContext = createContext()
+const ThemeContext = createContext({
+    theme: "light",
+    setTheme: () => null,
+})
 
-export function ThemeProvider({ children, defaultTheme = 'light', storageKey = 'theme', ...props }) {
-    const [theme, setTheme] = useState(() => {
-        if (typeof window !== 'undefined') {
-            const storedTheme = window.localStorage.getItem(storageKey)
-            return storedTheme || defaultTheme
-        }
-        return defaultTheme
-    })
+export const ThemeProvider = ({ children }) => {
+    const [theme, setTheme] = useState("light")
+
+    useEffect(() => {
+        const storedTheme = localStorage.getItem("theme") || "light"
+        setTheme(storedTheme)
+    }, [])
 
     useEffect(() => {
         const root = window.document.documentElement
-        root.classList.remove('light', 'dark')
+        root.classList.remove("light", "dark")
         root.classList.add(theme)
+        localStorage.setItem("theme", theme)
     }, [theme])
 
     const value = {
         theme,
-        setTheme: (newTheme) => {
-            setTheme(newTheme)
-            if (typeof window !== 'undefined') {
-                window.localStorage.setItem(storageKey, newTheme)
-            }
-        },
+        setTheme: (newTheme) => setTheme(newTheme),
     }
 
-    return (
-        <ThemeProviderContext.Provider {...props} value={value}>
-            {children}
-        </ThemeProviderContext.Provider>
-    )
+    return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 
-export function useTheme() {
-    const context = useContext(ThemeProviderContext)
-    if (context === undefined) {
+export const useTheme = () => {
+    const context = useContext(ThemeContext)
+    if (!context) {
         throw new Error("useTheme must be used within a ThemeProvider")
     }
     return context
