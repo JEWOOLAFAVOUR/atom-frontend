@@ -11,6 +11,9 @@ import AdminStudent from "../screen/admin/student/Student"
 import AdminTutor from "../screen/admin/tutor/Tutor"
 import useAuthStore from "../store/useAuthStore"
 import AdminCourse from "../screen/admin/courses/Course"
+import AssignmentPage from "../screen/student/project/Project"
+import ClassSchedulePage from "../screen/student/schedule/Schedule"
+import AttendancePage from "../screen/student/attendance/Attendance"
 
 const ScrollToTop = () => {
     const { pathname } = useLocation()
@@ -89,7 +92,7 @@ const Routes = () => {
                         // Tutor routes
                         {
                             path: "schedule",
-                            element: <div>Class Schedule</div>,
+                            element: <ClassSchedulePage />,
                         },
                         {
                             path: "projects",
@@ -102,11 +105,11 @@ const Routes = () => {
                         // Student routes
                         {
                             path: "assignments",
-                            element: <div>Assignments</div>,
+                            element: <AssignmentPage />,
                         },
                         {
                             path: "attendance",
-                            element: <div>Attendance</div>,
+                            element: <AttendancePage />,
                         },
                         // Shared routes
                         {
