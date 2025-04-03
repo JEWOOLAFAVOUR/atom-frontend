@@ -1,12 +1,11 @@
 import React, { useEffect } from 'react';
 import { createBrowserRouter, RouterProvider, useLocation, Navigate } from "react-router-dom";
-import HomePage from '../screen/Auth/HomePage';
+import HomePage from '../screen/auth/HomePage';
 import ProtectedRoute from './protectedRoute';
-// import DashboardLayout from '../screen/Dashboard/components/DashboardLayout';
 import DashboardLayout from "../screen/Dashboard/components/DashboardLayout";
 import Dashboard from '../screen/Dashboard/dashboard/Dashboard';
 import useAuthStore from '../store/useAuthStore';
-import LoginPage from '../screen/Auth/LoginPage';
+import LoginPage from '../screen/auth/LoginPage';
 
 
 
@@ -28,14 +27,7 @@ const RouteWrapper = ({ Component }) => (
 );
 
 const RootRouteHandler = () => {
-    const { isAuthenticated, token } = useAuthStore();
 
-    // If user is already authenticated, redirect to dashboard/cbt
-    // if (isAuthenticated && token) {
-    //     return <Navigate to="/dashboard/cbt" replace />;
-    // }
-
-    // Otherwise show the homepage
     return <HomePage />;
 };
 
