@@ -8,6 +8,7 @@ import TutorDashboard from "../screen/tutor/dashboard/Dashboard"
 import StudentDashboard from "../screen/student/dashboard/Dashboard"
 import LoginPage from "../screen/auth/LoginPage"
 import AdminStudent from "../screen/admin/student/Student"
+import AdminTutor from "../screen/admin/tutor/Tutor"
 import useAuthStore from "../store/useAuthStore"
 
 const ScrollToTop = () => {
@@ -78,7 +79,7 @@ const Routes = () => {
                         },
                         {
                             path: "tutors",
-                            element: <div>Manage Tutors</div>,
+                            element: <AdminTutor />,
                         },
                         {
                             path: "courses",
