@@ -278,12 +278,6 @@ export default function AdminCourse() {
                                         <Filter className="h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>All Courses</DropdownMenuItem>
-                                    <DropdownMenuItem>Active Courses</DropdownMenuItem>
-                                    <DropdownMenuItem>Upcoming Courses</DropdownMenuItem>
-                                    <DropdownMenuItem>Completed Courses</DropdownMenuItem>
-                                </DropdownMenuContent>
                             </DropdownMenu>
 
                             <Button variant="outline" size="icon">
@@ -293,15 +287,15 @@ export default function AdminCourse() {
                     </div>
                 </CardHeader>
 
-                <CardContent>
-                    <Table>
+                <CardContent className="rounded-md border">
+                    <Table className="w-full">
                         <TableHeader>
-                            <TableRow>
-                                <TableHead>Course Name</TableHead>
-                                <TableHead className="hidden md:table-cell">Description</TableHead>
-                                <TableHead className="hidden md:table-cell">Students</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                            <TableRow className="border-b bg-muted/50">
+                                <TableHead className="p-3">Course Name</TableHead>
+                                <TableHead className="p-3 font-medium hidden md:table-cell">Description</TableHead>
+                                <TableHead className="p-3 hidden md:table-cell">Students</TableHead>
+                                <TableHead className="p-3">Status</TableHead>
+                                <TableHead className="p-3 text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>

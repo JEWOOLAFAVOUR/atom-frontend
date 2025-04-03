@@ -421,11 +421,7 @@ const AdminTutor = () => {
                                         <tr key={student.id} className="border-b">
                                             <td className="p-3">
                                                 <div className="flex items-center gap-3">
-                                                    <Avatar className="h-8 w-8">
-                                                        <AvatarFallback className="bg-primary/10 text-primary">
-                                                            {student.firstName.charAt(0) + student.lastName.charAt(0)}
-                                                        </AvatarFallback>
-                                                    </Avatar>
+
                                                     <div>
                                                         <div className="font-medium">{student.firstName} {student.lastName}</div>
                                                         <div className="text-sm text-muted-foreground md:hidden">{student.email}</div>
