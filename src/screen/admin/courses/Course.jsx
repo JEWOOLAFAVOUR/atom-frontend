@@ -1,9 +1,28 @@
+"use client"
+
 import { useState } from "react"
-import { BookOpen, Search, Plus, MoreHorizontal, Pencil, Trash2, Filter, Download, Users } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card"
+import {
+    Search,
+    Plus,
+    MoreHorizontal,
+    Download,
+    Filter,
+    ChevronLeft,
+    ChevronRight,
+    Trash,
+    Edit,
+    Users,
+    BookOpen,
+} from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
 import { Button } from "../../../components/ui/button"
 import { Input } from "../../../components/ui/input"
-import { Badge } from "../../../components/ui/badge"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../../components/ui/dropdown-menu"
 import {
     Dialog,
     DialogContent,
@@ -11,22 +30,15 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
-    DialogClose,
 } from "../../../components/ui/dialog"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "../../../components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table"
 import { Label } from "../../../components/ui/label"
-import { Textarea } from "../../../components/ui/textarea"
+import { Badge } from "../../../components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select"
+import { Textarea } from "../../../components/ui/textarea"
+import { sendToast } from "../../../components/utilis"
 
-export default function AdminCourse() {
-    // State for courses
+const AdminCourse = () => {
+    // Courses data
     const [courses, setCourses] = useState([
         {
             id: 1,
@@ -80,22 +92,22 @@ export default function AdminCourse() {
         },
     ])
 
-    // State for search query
+    // States for modals and form data
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
-
-    // State for new/edit course
-    const [isEditMode, setIsEditMode] = useState(false)
-    const [currentCourse, setCurrentCourse] = useState({
-        id: null,
+    const [selectedCourse, setSelectedCourse] = useState(null)
+    const [formData, setFormData] = useState({
         name: "",
         description: "",
         status: "Active",
         startDate: "",
         duration: "12 weeks",
     })
-
-    // State for delete confirmation
-    const [courseToDelete, setCourseToDelete] = useState(null)
+    const [errors, setErrors] = useState({})
+    const [page, setPage] = useState(1)
+    const coursesPerPage = 5
 
     // Filter courses based on search query
     const filteredCourses = courses.filter(
@@ -105,54 +117,147 @@ export default function AdminCourse() {
             course.status.toLowerCase().includes(searchQuery.toLowerCase()),
     )
 
-    // Handle opening the edit modal
-    const handleEditCourse = (course) => {
-        setIsEditMode(true)
-        setCurrentCourse({ ...course })
-    }
+    // Pagination
+    const totalPages = Math.ceil(filteredCourses.length / coursesPerPage)
+    const paginatedCourses = filteredCourses.slice((page - 1) * coursesPerPage, page * coursesPerPage)
 
-    // Handle opening the delete modal
-    const handleDeleteCourse = (courseId) => {
-        setCourseToDelete(courseId)
-    }
-
-    // Handle form submission for create/edit
-    const handleSubmitCourse = () => {
-        if (isEditMode) {
-            // Update existing course
-            setCourses(courses.map((course) => (course.id === currentCourse.id ? currentCourse : course)))
-        } else {
-            // Create new course
-            const newCourse = {
-                ...currentCourse,
-                id: courses.length + 1,
-                students: 0,
-                tutors: [],
-            }
-            setCourses([...courses, newCourse])
-        }
-
-        // Reset form
-        resetForm()
-    }
-
-    // Handle delete confirmation
-    const handleConfirmDelete = () => {
-        setCourses(courses.filter((course) => course.id !== courseToDelete))
-        setCourseToDelete(null)
-    }
-
-    // Reset form
-    const resetForm = () => {
-        setCurrentCourse({
-            id: null,
+    // Reset form data
+    const resetFormData = () => {
+        setFormData({
             name: "",
             description: "",
             status: "Active",
             startDate: "",
             duration: "12 weeks",
         })
-        setIsEditMode(false)
+        setErrors({})
+    }
+
+    // Validate form
+    const validateForm = () => {
+        const newErrors = {}
+        if (!formData.name.trim()) newErrors.name = "Course name is required"
+        if (!formData.description.trim()) newErrors.description = "Description is required"
+        if (!formData.startDate.trim()) newErrors.startDate = "Start date is required"
+        if (!formData.duration) newErrors.duration = "Duration is required"
+
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }
+
+    // Handle add course
+    const handleAddCourse = (e) => {
+        e.preventDefault()
+
+        if (validateForm()) {
+            // Generate new course ID
+            const newId = Math.max(...courses.map((course) => course.id)) + 1
+
+            // Create new course object
+            const newCourse = {
+                id: newId,
+                name: formData.name,
+                description: formData.description,
+                status: formData.status,
+                startDate: formData.startDate,
+                duration: formData.duration,
+                students: 0,
+                tutors: [],
+            }
+
+            // Add to courses array
+            setCourses([...courses, newCourse])
+
+            // Reset form and close modal
+            resetFormData()
+            setIsAddModalOpen(false)
+
+            // Show toast notification
+            sendToast("success", "Course Created Successfully")
+        }
+    }
+
+    // Handle edit course
+    const handleEditCourse = (e) => {
+        e.preventDefault()
+
+        if (validateForm() && selectedCourse) {
+            // Update course in array
+            const updatedCourses = courses.map((course) => {
+                if (course.id === selectedCourse.id) {
+                    return {
+                        ...course,
+                        name: formData.name,
+                        description: formData.description,
+                        status: formData.status,
+                        startDate: formData.startDate,
+                        duration: formData.duration,
+                    }
+                }
+                return course
+            })
+
+            setCourses(updatedCourses)
+
+            // Reset form and close modal
+            resetFormData()
+            setIsEditModalOpen(false)
+
+            // Show toast notification
+            sendToast("success", "Course Updated Successfully")
+        }
+    }
+
+    // Handle delete course
+    const handleDeleteCourse = () => {
+        if (selectedCourse) {
+            // Filter out the selected course
+            const updatedCourses = courses.filter((course) => course.id !== selectedCourse.id)
+
+            setCourses(updatedCourses)
+
+            // Close modal
+            setIsDeleteModalOpen(false)
+
+            // Show toast notification
+            sendToast("success", "Course Deleted Successfully")
+        }
+    }
+
+    // Open edit modal with course data
+    const openEditModal = (course) => {
+        setSelectedCourse(course)
+        setFormData({
+            name: course.name,
+            description: course.description,
+            status: course.status,
+            startDate: course.startDate,
+            duration: course.duration,
+        })
+        setIsEditModalOpen(true)
+    }
+
+    // Open delete modal
+    const openDeleteModal = (course) => {
+        setSelectedCourse(course)
+        setIsDeleteModalOpen(true)
+    }
+
+    // Handle input change
+    const handleChange = (e) => {
+        const { name, value } = e.target
+        setFormData({
+            ...formData,
+            [name]: value,
+        })
+    }
+
+    // Handle select change
+    const handleSelectChange = (name, value) => {
+        setFormData({
+            ...formData,
+            [name]: value,
+        })
     }
 
     // Get status badge variant
@@ -170,250 +275,336 @@ export default function AdminCourse() {
     }
 
     return (
-        <div className="space-y-6 w-full">
+        <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h1 className="text-3xl font-bold tracking-tight">Courses</h1>
-
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <Dialog onOpenChange={(open) => !open && resetForm()}>
-                        <DialogTrigger asChild>
-                            <Button className="gap-1">
-                                <Plus className="h-4 w-4" />
-                                Add Course
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[550px]">
-                            <DialogHeader>
-                                <DialogTitle>{isEditMode ? "Edit Course" : "Add New Course"}</DialogTitle>
-                                <DialogDescription>
-                                    {isEditMode
-                                        ? "Update the course details below."
-                                        : "Fill in the details below to create a new course."}
-                                </DialogDescription>
-                            </DialogHeader>
-
-                            <div className="grid gap-4 py-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="name">Course Name</Label>
-                                    <Input
-                                        id="name"
-                                        value={currentCourse.name}
-                                        onChange={(e) => setCurrentCourse({ ...currentCourse, name: e.target.value })}
-                                        placeholder="e.g., Web Development Fundamentals"
-                                    />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="description">Description</Label>
-                                    <Textarea
-                                        id="description"
-                                        value={currentCourse.description}
-                                        onChange={(e) => setCurrentCourse({ ...currentCourse, description: e.target.value })}
-                                        placeholder="Brief description of the course"
-                                        rows={3}
-                                    />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="duration">Duration</Label>
-                                    <Select
-                                        value={currentCourse.duration}
-                                        onValueChange={(value) => setCurrentCourse({ ...currentCourse, duration: value })}
-                                    >
-                                        <SelectTrigger id="duration">
-                                            <SelectValue placeholder="Select duration" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="4 weeks">4 weeks</SelectItem>
-                                            <SelectItem value="8 weeks">8 weeks</SelectItem>
-                                            <SelectItem value="10 weeks">10 weeks</SelectItem>
-                                            <SelectItem value="12 weeks">12 weeks</SelectItem>
-                                            <SelectItem value="14 weeks">14 weeks</SelectItem>
-                                            <SelectItem value="16 weeks">16 weeks</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button variant="outline" type="button">
-                                        Cancel
-                                    </Button>
-                                </DialogClose>
-                                <DialogClose asChild>
-                                    <Button type="submit" onClick={handleSubmitCourse}>
-                                        {isEditMode ? "Save Changes" : "Create Course"}
-                                    </Button>
-                                </DialogClose>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Manage Courses</h1>
+                    <p className="text-muted-foreground mt-1">Manage and organize your courses</p>
                 </div>
+                <Button
+                    onClick={() => {
+                        resetFormData()
+                        setIsAddModalOpen(true)
+                    }}
+                    className="gap-1"
+                >
+                    <Plus size={16} />
+                    <span>Add Course</span>
+                </Button>
             </div>
 
             <Card className="shadow-sm">
                 <CardHeader className="pb-3">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <CardTitle>Course Management</CardTitle>
-                            <CardDescription>Manage your courses, add new ones or edit existing courses</CardDescription>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-2">
+                        <CardTitle>Courses</CardTitle>
+                        <div className="flex items-center gap-2">
                             <div className="relative">
                                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     type="search"
-                                    placeholder="Search courses..."
-                                    className="w-full sm:w-[250px] pl-9"
+                                    placeholder="Search course..."
+                                    className="pl-9 w-full sm:w-64"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
-
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="icon">
-                                        <Filter className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                            </DropdownMenu>
-
                             <Button variant="outline" size="icon">
-                                <Download className="h-4 w-4" />
+                                <Filter size={16} />
+                            </Button>
+                            <Button variant="outline" size="icon">
+                                <Download size={16} />
                             </Button>
                         </div>
                     </div>
                 </CardHeader>
-
-                <CardContent className="rounded-md border">
-                    <Table className="w-full">
-                        <TableHeader>
-                            <TableRow className="border-b bg-muted/50">
-                                <TableHead className="p-3">Course Name</TableHead>
-                                <TableHead className="p-3 font-medium hidden md:table-cell">Description</TableHead>
-                                <TableHead className="p-3 hidden md:table-cell">Students</TableHead>
-                                <TableHead className="p-3">Status</TableHead>
-                                <TableHead className="p-3 text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredCourses.length > 0 ? (
-                                filteredCourses.map((course) => (
-                                    <TableRow key={course.id}>
-                                        <TableCell className="font-medium">
-                                            <div className="flex items-center gap-2">
-                                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                                    <BookOpen className="h-4 w-4 text-primary" />
+                <CardContent>
+                    <div className="rounded-md border">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b bg-muted/50">
+                                    <th className="p-3 text-left font-medium">Course Name</th>
+                                    <th className="p-3 text-left font-medium hidden md:table-cell">Description</th>
+                                    <th className="p-3 text-left font-medium hidden lg:table-cell">Students</th>
+                                    <th className="p-3 text-left font-medium">Status</th>
+                                    <th className="p-3 text-right font-medium">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {paginatedCourses.length > 0 ? (
+                                    paginatedCourses.map((course) => (
+                                        <tr key={course.id} className="border-b">
+                                            <td className="p-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                                        <BookOpen className="h-4 w-4 text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-medium">{course.name}</div>
+                                                    </div>
                                                 </div>
-                                                <span>{course.name}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell text-muted-foreground">
-                                            {course.description.length > 60
-                                                ? `${course.description.substring(0, 60)}...`
-                                                : course.description}
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">
-                                            <div className="flex items-center gap-1">
-                                                <Users className="h-4 w-4 text-muted-foreground" />
-                                                <span>{course.students}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={getStatusBadge(course.status)}>{course.status}</Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                        <span className="sr-only">Open menu</span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <Dialog
-                                                        onOpenChange={(open) => {
-                                                            if (open) {
-                                                                handleEditCourse(course)
-                                                            } else if (!open && isEditMode) {
-                                                                resetForm()
-                                                            }
-                                                        }}
-                                                    >
-                                                        <DialogTrigger asChild>
-                                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                                <Pencil className="h-4 w-4 mr-2" />
-                                                                Edit
-                                                            </DropdownMenuItem>
-                                                        </DialogTrigger>
-                                                    </Dialog>
+                                            </td>
+                                            <td className="p-3 text-muted-foreground hidden md:table-cell">
+                                                {course.description.length > 60
+                                                    ? `${course.description.substring(0, 60)}...`
+                                                    : course.description}
+                                            </td>
+                                            <td className="p-3 hidden lg:table-cell">
+                                                <div className="flex items-center gap-1">
+                                                    <Users className="h-4 w-4 text-muted-foreground" />
+                                                    <span>{course.students}</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-3">
+                                                <Badge variant={getStatusBadge(course.status)}>{course.status}</Badge>
+                                            </td>
+                                            <td className="p-3 text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => openEditModal(course)}>
+                                                            <Edit className="mr-2 h-4 w-4" />
+                                                            Edit
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => openDeleteModal(course)}>
+                                                            <Trash className="mr-2 h-4 w-4" />
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={5} className="p-4 text-center text-muted-foreground">
+                                            No courses found matching your search.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
 
-                                                    <Dialog>
-                                                        <DialogTrigger asChild>
-                                                            <DropdownMenuItem
-                                                                onSelect={(e) => {
-                                                                    e.preventDefault()
-                                                                    handleDeleteCourse(course.id)
-                                                                }}
-                                                                className="text-destructive focus:text-destructive"
-                                                            >
-                                                                <Trash2 className="h-4 w-4 mr-2" />
-                                                                Delete
-                                                            </DropdownMenuItem>
-                                                        </DialogTrigger>
-                                                        <DialogContent>
-                                                            <DialogHeader>
-                                                                <DialogTitle>Delete Course</DialogTitle>
-                                                                <DialogDescription>
-                                                                    Are you sure you want to delete this course? This action cannot be undone.
-                                                                </DialogDescription>
-                                                            </DialogHeader>
-                                                            <div className="py-4">
-                                                                <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-                                                                    <h4 className="font-medium flex items-center gap-2">
-                                                                        <BookOpen className="h-4 w-4" />
-                                                                        {courses.find((c) => c.id === courseToDelete)?.name}
-                                                                    </h4>
-                                                                    <p className="text-sm text-muted-foreground mt-1">
-                                                                        {courses.find((c) => c.id === courseToDelete)?.description}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                            <DialogFooter>
-                                                                <DialogClose asChild>
-                                                                    <Button variant="outline">Cancel</Button>
-                                                                </DialogClose>
-                                                                <DialogClose asChild>
-                                                                    <Button variant="destructive" onClick={handleConfirmDelete}>
-                                                                        Delete Course
-                                                                    </Button>
-                                                                </DialogClose>
-                                                            </DialogFooter>
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
-                                        <div className="flex flex-col items-center justify-center text-muted-foreground">
-                                            <BookOpen className="h-8 w-8 mb-2" />
-                                            <p>No courses found</p>
-                                            <p className="text-sm">Try adjusting your search or filters</p>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                    {/* Pagination */}
+                    {filteredCourses.length > 0 && (
+                        <div className="flex items-center justify-between mt-4">
+                            <div className="text-sm text-muted-foreground">
+                                Showing {(page - 1) * coursesPerPage + 1} to {Math.min(page * coursesPerPage, filteredCourses.length)}{" "}
+                                of {filteredCourses.length} courses
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                                    disabled={page === 1}
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                                    disabled={page === totalPages}
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
+
+            {/* Add Course Modal */}
+            <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Add New Course</DialogTitle>
+                        <DialogDescription>Fill in the details below to create a new course.</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleAddCourse}>
+                        <div className="grid gap-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Course Name</Label>
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className={errors.name ? "border-red-500" : ""}
+                                    placeholder="e.g., Web Development Fundamentals"
+                                />
+                                {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="description">Description</Label>
+                                <Textarea
+                                    id="description"
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    className={errors.description ? "border-red-500" : ""}
+                                    placeholder="Brief description of the course"
+                                    rows={3}
+                                />
+                                {errors.description && <p className="text-red-500 text-xs">{errors.description}</p>}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="duration">Duration</Label>
+                                <Select value={formData.duration} onValueChange={(value) => handleSelectChange("duration", value)}>
+                                    <SelectTrigger id="duration" className={errors.duration ? "border-red-500" : ""}>
+                                        <SelectValue placeholder="Select duration" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="4 weeks">4 weeks</SelectItem>
+                                        <SelectItem value="8 weeks">8 weeks</SelectItem>
+                                        <SelectItem value="10 weeks">10 weeks</SelectItem>
+                                        <SelectItem value="12 weeks">12 weeks</SelectItem>
+                                        <SelectItem value="14 weeks">14 weeks</SelectItem>
+                                        <SelectItem value="16 weeks">16 weeks</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.duration && <p className="text-red-500 text-xs">{errors.duration}</p>}
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button type="submit">Create Course</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit Course Modal */}
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Edit Course</DialogTitle>
+                        <DialogDescription>Update the course information below.</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleEditCourse}>
+                        <div className="grid gap-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Course Name</Label>
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className={errors.name ? "border-red-500" : ""}
+                                />
+                                {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="description">Description</Label>
+                                <Textarea
+                                    id="description"
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    className={errors.description ? "border-red-500" : ""}
+                                    rows={3}
+                                />
+                                {errors.description && <p className="text-red-500 text-xs">{errors.description}</p>}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="status">Status</Label>
+                                    <Select value={formData.status} onValueChange={(value) => handleSelectChange("status", value)}>
+                                        <SelectTrigger id="status">
+                                            <SelectValue placeholder="Select status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Active">Active</SelectItem>
+                                            <SelectItem value="Upcoming">Upcoming</SelectItem>
+                                            <SelectItem value="Completed">Completed</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="startDate">Start Date</Label>
+                                    <Input
+                                        id="startDate"
+                                        name="startDate"
+                                        type="date"
+                                        value={formData.startDate}
+                                        onChange={handleChange}
+                                        className={errors.startDate ? "border-red-500" : ""}
+                                    />
+                                    {errors.startDate && <p className="text-red-500 text-xs">{errors.startDate}</p>}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="duration">Duration</Label>
+                                <Select value={formData.duration} onValueChange={(value) => handleSelectChange("duration", value)}>
+                                    <SelectTrigger id="duration" className={errors.duration ? "border-red-500" : ""}>
+                                        <SelectValue placeholder="Select duration" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="4 weeks">4 weeks</SelectItem>
+                                        <SelectItem value="8 weeks">8 weeks</SelectItem>
+                                        <SelectItem value="10 weeks">10 weeks</SelectItem>
+                                        <SelectItem value="12 weeks">12 weeks</SelectItem>
+                                        <SelectItem value="14 weeks">14 weeks</SelectItem>
+                                        <SelectItem value="16 weeks">16 weeks</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.duration && <p className="text-red-500 text-xs">{errors.duration}</p>}
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button type="submit">Save Changes</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Course Modal */}
+            <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Delete Course</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this course? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+                        {selectedCourse && (
+                            <>
+                                <h4 className="font-medium flex items-center gap-2">
+                                    <BookOpen className="h-4 w-4" />
+                                    {selectedCourse.name}
+                                </h4>
+                                <p className="text-sm text-muted-foreground mt-1">{selectedCourse.description}</p>
+                            </>
+                        )}
+                    </div>
+                    <DialogFooter className="mt-4">
+                        <Button type="button" variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button type="button" variant="destructive" onClick={handleDeleteCourse}>
+                            Delete Course
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
+
+export default AdminCourse
 
