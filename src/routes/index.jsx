@@ -10,6 +10,7 @@ import LoginPage from "../screen/auth/LoginPage"
 import AdminStudent from "../screen/admin/student/Student"
 import AdminTutor from "../screen/admin/tutor/Tutor"
 import useAuthStore from "../store/useAuthStore"
+import AdminCourse from "../screen/admin/courses/Course"
 
 const ScrollToTop = () => {
     const { pathname } = useLocation()
@@ -83,7 +84,7 @@ const Routes = () => {
                         },
                         {
                             path: "courses",
-                            element: <div>Manage Courses</div>,
+                            element: <AdminCourse />,
                         },
                         // Tutor routes
                         {
