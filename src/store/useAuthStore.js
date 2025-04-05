@@ -5,17 +5,24 @@ const useAuthStore = create(
     persist(
         (set) => ({
             user: null,
+            token: null,
             isAuthenticated: false,
 
-            login: (userData) =>
+            login: (userData) => {
+                // Extract token from userData and store it separately
+                const { token, ...userInfo } = userData
+
                 set({
-                    user: userData,
+                    user: userInfo,
+                    token: token,
                     isAuthenticated: true,
-                }),
+                })
+            },
 
             logout: () =>
                 set({
                     user: null,
+                    token: null,
                     isAuthenticated: false,
                 }),
 
@@ -23,6 +30,12 @@ const useAuthStore = create(
                 set((state) => ({
                     user: { ...state.user, ...userData },
                 })),
+
+            getToken: () => {
+                // Helper function to access token (useful for API requests)
+                const state = useAuthStore.getState()
+                return state.token
+            }
         }),
         {
             name: "auth-storage",
@@ -31,4 +44,3 @@ const useAuthStore = create(
 )
 
 export default useAuthStore
-

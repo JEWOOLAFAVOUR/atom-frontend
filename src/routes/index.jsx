@@ -33,7 +33,8 @@ const RouteWrapper = ({ Component }) => (
 )
 
 const RootRouteHandler = () => {
-    return <HomePage />
+    // return <HomePage />
+    return <LoginPage />
 }
 
 const DashboardHandler = () => {

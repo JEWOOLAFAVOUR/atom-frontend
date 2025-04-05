@@ -18,12 +18,7 @@ const makeApiRequest = async (method, endpoint, data) => {
 };
 
 
-export const registerUser = async (data) => {
-    const response = await makeApiRequest('POST', '/user/create-user', data);
-    return response;
-};
-
 export const loginUser = async (data) => {
-    const response = await makeApiRequest('POST', '/user/login-user', data);
+    const response = await makeApiRequest('POST', '/auth/login', data);
     return response;
 };

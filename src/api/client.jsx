@@ -2,7 +2,7 @@ import axios from "axios";
 import useAuthStore from "../store/useAuthStore";
 
 
-const BASE_URL = 'Your Base URL';
+const BASE_URL = 'http://localhost:8000/api/v1';
 
 const client = axios.create({ baseURL: BASE_URL });
 
@@ -10,7 +10,8 @@ const client = axios.create({ baseURL: BASE_URL });
 client.interceptors.request.use(
     function (config) {
         // Access Zustand's state using getState()
-        const { token } = useAuthStore.getState();
+        // const { token } = useAuthStore.getState();
+        const token = useAuthStore.getState().token
 
         // console.log('..........', token)
 
