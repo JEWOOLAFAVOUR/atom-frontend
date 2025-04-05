@@ -1,31 +1,27 @@
-import { useState, useEffect } from "react";
+"use client"
+
+import { useState, useEffect } from "react"
 import {
     Search,
-    Plus,
     MoreHorizontal,
     Download,
     Filter,
     ChevronLeft,
     ChevronRight,
-    Calendar,
-    Mail,
-    Check,
     Trash,
     Edit,
-    X,
     User,
     UserPlus,
-    Users
-} from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
+} from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
+import { Button } from "../../../components/ui/button"
+import { Input } from "../../../components/ui/input"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuTrigger
-} from "../../../components/ui/dropdown-menu";
+    DropdownMenuTrigger,
+} from "../../../components/ui/dropdown-menu"
 import {
     Dialog,
     DialogContent,
@@ -33,119 +29,45 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
-} from "../../../components/ui/dialog";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "../../../components/ui/form";
-import { Label } from "../../../components/ui/label";
-import { Badge } from "../../../components/ui/badge";
-import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select";
-import { Separator } from "../../../components/ui/separator";
-import { Alert, AlertDescription, AlertTitle } from "../../../components/ui/alert";
-// import { ToastAction } from "../../../components/ui/toast";
-// import { useToast } from "../../../components/ui/use-sonner";
-import { sendToast } from "../../../components/utilis";
+} from "../../../components/ui/dialog"
+import { Label } from "../../../components/ui/label"
+import { Badge } from "../../../components/ui/badge"
+import { Avatar, AvatarFallback } from "../../../components/ui/avatar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select"
+import { sendToast } from "../../../components/utilis"
+import useAuthStore from "../../../store/useAuthStore"
+import { createUserByRole, getUsers, updateUser, deleteUser } from "../../../api/auth"
+import { getCourses } from "../../../api/auth"
 
 const AdminStudent = () => {
-    // Mock data for initial students
-    const [students, setStudents] = useState([
-        {
-            id: "20001",
-            firstName: "Emma",
-            lastName: "Johnson",
-            email: "emma@example.com",
-            birthDay: "12",
-            birthMonth: "5",
-            course: "Web Development",
-            joinDate: "March 10, 2025",
-            status: "Active"
-        },
-        {
-            id: "20002",
-            firstName: "Michael",
-            lastName: "Chen",
-            email: "michael@example.com",
-            birthDay: "24",
-            birthMonth: "8",
-            course: "Data Science",
-            joinDate: "February 18, 2025",
-            status: "Active"
-        },
-        {
-            id: "20003",
-            firstName: "Sophia",
-            lastName: "Rodriguez",
-            email: "sophia@example.com",
-            birthDay: "3",
-            birthMonth: "11",
-            course: "UX Design",
-            joinDate: "January 5, 2025",
-            status: "Inactive"
-        },
-        {
-            id: "20004",
-            firstName: "James",
-            lastName: "Wilson",
-            email: "james@example.com",
-            birthDay: "19",
-            birthMonth: "2",
-            course: "Mobile Development",
-            joinDate: "March 22, 2025",
-            status: "Active"
-        },
-        {
-            id: "20005",
-            firstName: "Olivia",
-            lastName: "Smith",
-            email: "olivia@example.com",
-            birthDay: "7",
-            birthMonth: "6",
-            course: "Web Development",
-            joinDate: "January 15, 2025",
-            status: "Active"
-        },
-    ]);
+    const { user } = useAuthStore()
 
-    // Courses data
-    const courses = [
-        { id: 1, name: "Web Development" },
-        { id: 2, name: "Data Science" },
-        { id: 3, name: "UX Design" },
-        { id: 4, name: "Mobile Development" },
-        { id: 5, name: "Machine Learning" },
-        { id: 6, name: "Digital Marketing" },
-        { id: 7, name: "Game Development" },
-        { id: 8, name: "Cloud Computing" },
-    ];
-
-    // Toast hook for notifications
-    // const { toast } = useToast();
-
-    // States for modals and form data
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedStudent, setSelectedStudent] = useState(null);
+    // State variables
+    const [students, setStudents] = useState([])
+    const [courses, setCourses] = useState([])
+    const [isLoading, setIsLoading] = useState(false)
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+    const [searchQuery, setSearchQuery] = useState("")
+    const [searchTimeout, setSearchTimeout] = useState(null)
+    const [selectedStudent, setSelectedStudent] = useState(null)
     const [formData, setFormData] = useState({
-        firstName: "",
-        lastName: "",
+        firstname: "",
+        lastname: "",
         email: "",
-        birthDay: "",
-        birthMonth: "",
+        day: "",
+        month: "",
         course: "",
-    });
-    const [errors, setErrors] = useState({});
-    const [page, setPage] = useState(1);
-    const studentsPerPage = 5;
+        userType: "student",
+        organizationId: "",
+    })
+    const [errors, setErrors] = useState({})
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        totalPages: 1,
+        total: 0,
+    })
 
     // Month names for dropdown
     const months = [
@@ -161,206 +83,268 @@ const AdminStudent = () => {
         { value: "10", label: "October" },
         { value: "11", label: "November" },
         { value: "12", label: "December" },
-    ];
+    ]
 
-    // Filter students based on search query
-    const filteredStudents = students.filter(student =>
-        student.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.id.includes(searchQuery)
-    );
+    // Initialize organization ID from authenticated user
+    useEffect(() => {
+        if (user?.organization?._id) {
+            setFormData((prev) => ({
+                ...prev,
+                organizationId: user.organization._id,
+            }))
+        }
+    }, [user])
 
-    // Pagination
-    const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
-    const paginatedStudents = filteredStudents.slice(
-        (page - 1) * studentsPerPage,
-        page * studentsPerPage
-    );
+    // Fetch students on component mount and when search changes
+    useEffect(() => {
+        fetchStudents()
+        fetchCourses()
+    }, [pagination.currentPage])
+
+    // Debounce search input to prevent excessive API calls
+    useEffect(() => {
+        if (searchTimeout) {
+            clearTimeout(searchTimeout)
+        }
+
+        const timeout = setTimeout(() => {
+            fetchStudents(1)
+        }, 500)
+
+        setSearchTimeout(timeout)
+
+        return () => {
+            if (searchTimeout) clearTimeout(searchTimeout)
+        }
+    }, [searchQuery])
+
+    // Fetch students from API
+    const fetchStudents = async (page = pagination.currentPage) => {
+        setIsLoading(true)
+        try {
+            // Build query parameters
+            const params = {
+                userType: "student",
+                page: page.toString(),
+                limit: "10",
+            }
+
+            if (user?.organization?._id) {
+                params.organizationId = user.organization._id
+            }
+
+            if (searchQuery) {
+                params.search = searchQuery
+            }
+
+            // Make API request
+            const response = await getUsers(params)
+
+            if (response.data?.success) {
+                setStudents(response.data.data)
+                setPagination({
+                    currentPage: response.data.page,
+                    totalPages: response.data.totalPages,
+                    total: response.data.totalCount,
+                })
+            } else {
+                sendToast("error", response?.data?.message || "Failed to fetch students")
+            }
+        } catch (error) {
+            console.error("Error fetching students:", error)
+            sendToast("error", "Failed to fetch students")
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    // Fetch courses for dropdown
+    const fetchCourses = async () => {
+        try {
+            const params = {}
+            if (user?.organization?._id) {
+                params.organization = user.organization._id
+            }
+
+            const response = await getCourses(params)
+
+            if (response.data?.success) {
+                setCourses(response.data.data)
+            }
+        } catch (error) {
+            console.error("Error fetching courses:", error)
+        }
+    }
 
     // Reset form data
     const resetFormData = () => {
         setFormData({
-            firstName: "",
-            lastName: "",
+            firstname: "",
+            lastname: "",
             email: "",
-            birthDay: "",
-            birthMonth: "",
+            day: "",
+            month: "",
             course: "",
-        });
-        setErrors({});
-    };
+            userType: "student",
+            organizationId: user?.organization?._id || "",
+        })
+        setErrors({})
+    }
 
     // Validate form
     const validateForm = () => {
-        const newErrors = {};
-        if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
-        if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+        const newErrors = {}
+        if (!formData.firstname.trim()) newErrors.firstname = "First name is required"
+        if (!formData.lastname.trim()) newErrors.lastname = "Last name is required"
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!formData.email.trim()) {
-            newErrors.email = "Email is required";
+            newErrors.email = "Email is required"
         } else if (!emailRegex.test(formData.email)) {
-            newErrors.email = "Please enter a valid email";
+            newErrors.email = "Please enter a valid email"
         }
 
-        if (!formData.birthDay.trim()) {
-            newErrors.birthDay = "Birth day is required";
-        } else if (isNaN(formData.birthDay) || parseInt(formData.birthDay) < 1 || parseInt(formData.birthDay) > 31) {
-            newErrors.birthDay = "Please enter a valid day (1-31)";
+        if (!formData.day.trim()) {
+            newErrors.day = "Birth day is required"
+        } else if (isNaN(formData.day) || Number.parseInt(formData.day) < 1 || Number.parseInt(formData.day) > 31) {
+            newErrors.day = "Please enter a valid day (1-31)"
         }
 
-        if (!formData.birthMonth) newErrors.birthMonth = "Birth month is required";
-        if (!formData.course) newErrors.course = "Course is required";
+        if (!formData.month) newErrors.month = "Birth month is required"
+        if (!formData.organizationId) newErrors.organizationId = "Organization is required"
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }
 
     // Handle add student
-    const handleAddStudent = (e) => {
-        e.preventDefault();
+    const handleAddStudent = async (e) => {
+        e.preventDefault()
 
         if (validateForm()) {
-            // Generate new student ID (last ID + 1)
-            const lastId = parseInt(students[students.length - 1].id);
-            const newId = (lastId + 1).toString();
+            setIsLoading(true)
+            try {
+                const response = await createUserByRole(formData)
 
-            // Get current date
-            const today = new Date();
-            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            const joinDate = `${monthNames[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`;
-
-            // Create new student object
-            const newStudent = {
-                id: newId,
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                email: formData.email,
-                birthDay: formData.birthDay,
-                birthMonth: formData.birthMonth,
-                course: formData.course,
-                joinDate,
-                status: "Active",
-            };
-
-            // Add to students array
-            setStudents([...students, newStudent]);
-
-            // Reset form and close modal
-            resetFormData();
-            setIsAddModalOpen(false);
-
-            // Show success modal
-            setIsSuccessModalOpen(true);
-
-            // Show toast notification
-            sendToast('success', "Student Created Successfully")
-            // toast({
-            //     title: "Student Created Successfully",
-            //     description: "The student account has been created and login details sent.",
-            //     action: <ToastAction altText="Dismiss">Dismiss</ToastAction>,
-            // });
+                if (response.data?.success) {
+                    sendToast("success", "Student created successfully")
+                    setIsAddModalOpen(false)
+                    fetchStudents() // Refresh the student list
+                } else {
+                    sendToast("error", response.data?.message || "Failed to create student")
+                }
+            } catch (error) {
+                console.error("Error creating student:", error)
+                sendToast("error", "Failed to create student")
+            } finally {
+                setIsLoading(false)
+            }
         }
-    };
+    }
 
     // Handle edit student
-    const handleEditStudent = (e) => {
-        e.preventDefault();
+    const handleEditStudent = async (e) => {
+        e.preventDefault()
 
         if (validateForm() && selectedStudent) {
-            // Update student in array
-            const updatedStudents = students.map(student => {
-                if (student.id === selectedStudent.id) {
-                    return {
-                        ...student,
-                        firstName: formData.firstName,
-                        lastName: formData.lastName,
-                        email: formData.email,
-                        birthDay: formData.birthDay,
-                        birthMonth: formData.birthMonth,
-                        course: formData.course,
-                    };
+            setIsLoading(true)
+            try {
+                const response = await updateUser(selectedStudent._id, formData)
+
+                if (response.data?.success) {
+                    sendToast("success", "Student updated successfully")
+                    setIsEditModalOpen(false)
+                    fetchStudents() // Refresh the student list
+                } else {
+                    sendToast("error", response.data?.message || "Failed to update student")
                 }
-                return student;
-            });
-
-            setStudents(updatedStudents);
-
-            // Reset form and close modal
-            resetFormData();
-            setIsEditModalOpen(false);
-
-            // Show toast notification
-            sendToast('success', "Student Updated Successfully")
-
-            // toast({
-            //     title: "Student Updated",
-            //     description: "The student information has been updated successfully.",
-            //     action: <ToastAction altText="Dismiss">Dismiss</ToastAction>,
-            // });
+            } catch (error) {
+                console.error("Error updating student:", error)
+                sendToast("error", "Failed to update student")
+            } finally {
+                setIsLoading(false)
+            }
         }
-    };
+    }
 
     // Handle delete student
-    const handleDeleteStudent = () => {
+    const handleDeleteStudent = async () => {
         if (selectedStudent) {
-            // Filter out the selected student
-            const updatedStudents = students.filter(student => student.id !== selectedStudent.id);
+            setIsLoading(true)
+            try {
+                const response = await deleteUser(selectedStudent._id)
 
-            setStudents(updatedStudents);
-
-            // Close modal
-            setIsDeleteModalOpen(false);
-
-            // Show toast notification
-            sendToast('success', "Student Deleted Successfully")
-
-
-            // toast({
-            //     title: "Student Deleted",
-            //     description: "The student has been removed from the system.",
-            //     action: <ToastAction altText="Dismiss">Dismiss</ToastAction>,
-            // });
+                if (response.data?.success) {
+                    sendToast("success", "Student deleted successfully")
+                    setIsDeleteModalOpen(false)
+                    fetchStudents() // Refresh the student list
+                } else {
+                    sendToast("error", response.data?.message || "Failed to delete student")
+                }
+            } catch (error) {
+                console.error("Error deleting student:", error)
+                sendToast("error", "Failed to delete student")
+            } finally {
+                setIsLoading(false)
+            }
         }
-    };
+    }
 
     // Open edit modal with student data
     const openEditModal = (student) => {
-        setSelectedStudent(student);
+        setSelectedStudent(student)
+
+        // Extract day and month from dateOfBirth if available
+        let day = ""
+        let month = ""
+
+        if (student.dateOfBirth) {
+            const date = new Date(student.dateOfBirth)
+            day = date.getDate().toString()
+            month = (date.getMonth() + 1).toString()
+        }
+
         setFormData({
-            firstName: student.firstName,
-            lastName: student.lastName,
+            firstname: student.firstname,
+            lastname: student.lastname,
             email: student.email,
-            birthDay: student.birthDay,
-            birthMonth: student.birthMonth,
-            course: student.course,
-        });
-        setIsEditModalOpen(true);
-    };
+            day: day,
+            month: month,
+            course: student.course?._id || "",
+            userType: "student",
+            organizationId: student.organization || user?.organization?._id || "",
+        })
+        setIsEditModalOpen(true)
+    }
 
     // Open delete modal
     const openDeleteModal = (student) => {
-        setSelectedStudent(student);
-        setIsDeleteModalOpen(true);
-    };
+        setSelectedStudent(student)
+        setIsDeleteModalOpen(true)
+    }
 
     // Handle input change
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value } = e.target
         setFormData({
             ...formData,
             [name]: value,
-        });
-    };
+        })
+    }
 
     // Handle select change
     const handleSelectChange = (name, value) => {
         setFormData({
             ...formData,
             [name]: value,
-        });
-    };
+        })
+    }
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= pagination.totalPages) {
+            setPagination((prev) => ({ ...prev, currentPage: newPage }))
+        }
+    }
 
     return (
         <div className="space-y-6">
@@ -369,10 +353,14 @@ const AdminStudent = () => {
                     <h1 className="text-3xl font-bold tracking-tight">Manage Students</h1>
                     <p className="text-muted-foreground mt-1">Manage and organize your students</p>
                 </div>
-                <Button onClick={() => {
-                    resetFormData();
-                    setIsAddModalOpen(true);
-                }} className="gap-1">
+                <Button
+                    onClick={() => {
+                        resetFormData()
+                        setIsAddModalOpen(true)
+                    }}
+                    className="gap-1"
+                    disabled={isLoading}
+                >
                     <UserPlus size={16} />
                     <span>Add Student</span>
                 </Button>
@@ -417,33 +405,48 @@ const AdminStudent = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {paginatedStudents.length > 0 ? (
-                                    paginatedStudents.map((student) => (
-                                        <tr key={student.id} className="border-b">
-                                            <td className="p-3 font-mono text-sm">{student.id}</td>
+                                {isLoading ? (
+                                    <tr>
+                                        <td colSpan={7} className="p-4 text-center">
+                                            Loading students...
+                                        </td>
+                                    </tr>
+                                ) : students.length > 0 ? (
+                                    students.map((student) => (
+                                        <tr key={student._id} className="border-b">
+                                            <td className="p-3 font-mono text-sm">{student._id.substring(0, 6)}</td>
                                             <td className="p-3">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-8 w-8">
                                                         <AvatarFallback className="bg-primary/10 text-primary">
-                                                            {student.firstName.charAt(0) + student.lastName.charAt(0)}
+                                                            {student.firstname?.charAt(0)}
+                                                            {student.lastname?.charAt(0)}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <div className="font-medium">{student.firstName} {student.lastName}</div>
+                                                        <div className="font-medium">
+                                                            {student.firstname} {student.lastname}
+                                                        </div>
                                                         <div className="text-sm text-muted-foreground md:hidden">{student.email}</div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="p-3 text-muted-foreground hidden md:table-cell">{student.email}</td>
                                             <td className="p-3 hidden lg:table-cell">
-                                                <Badge variant="outline" className="bg-primary/5 text-primary font-normal">
-                                                    {student.course}
-                                                </Badge>
+                                                {student.course ? (
+                                                    <Badge variant="outline" className="bg-primary/5 text-primary font-normal">
+                                                        {typeof student.course === "object" ? student.course.name : "Assigned"}
+                                                    </Badge>
+                                                ) : (
+                                                    <span className="text-muted-foreground text-sm">Not assigned</span>
+                                                )}
                                             </td>
-                                            <td className="p-3 text-muted-foreground hidden lg:table-cell">{student.joinDate}</td>
+                                            <td className="p-3 text-muted-foreground hidden lg:table-cell">
+                                                {new Date(student.createdAt).toLocaleDateString()}
+                                            </td>
                                             <td className="p-3">
-                                                <Badge variant={student.status === "Active" ? "success" : "secondary"}>
-                                                    {student.status}
+                                                <Badge variant={student.verified ? "success" : "secondary"}>
+                                                    {student.verified ? "Verified" : "Pending"}
                                                 </Badge>
                                             </td>
                                             <td className="p-3 text-right">
@@ -479,25 +482,26 @@ const AdminStudent = () => {
                     </div>
 
                     {/* Pagination */}
-                    {filteredStudents.length > 0 && (
+                    {students.length > 0 && (
                         <div className="flex items-center justify-between mt-4">
                             <div className="text-sm text-muted-foreground">
-                                Showing {((page - 1) * studentsPerPage) + 1} to {Math.min(page * studentsPerPage, filteredStudents.length)} of {filteredStudents.length} students
+                                Showing {(pagination.currentPage - 1) * 10 + 1} to{" "}
+                                {Math.min(pagination.currentPage * 10, pagination.total)} of {pagination.total} students
                             </div>
                             <div className="flex items-center gap-1">
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    onClick={() => setPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={page === 1}
+                                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                                    disabled={pagination.currentPage === 1 || isLoading}
                                 >
                                     <ChevronLeft className="h-4 w-4" />
                                 </Button>
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
-                                    disabled={page === totalPages}
+                                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                                    disabled={pagination.currentPage === pagination.totalPages || isLoading}
                                 >
                                     <ChevronRight className="h-4 w-4" />
                                 </Button>
@@ -512,38 +516,34 @@ const AdminStudent = () => {
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Add New Student</DialogTitle>
-                        <DialogDescription>
-                            Fill in the details below to create a new student account.
-                        </DialogDescription>
+                        <DialogDescription>Fill in the details below to create a new student account.</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleAddStudent}>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="firstName">First Name</Label>
+                                    <Label htmlFor="firstname">First Name</Label>
                                     <Input
-                                        id="firstName"
-                                        name="firstName"
-                                        value={formData.firstName}
+                                        id="firstname"
+                                        name="firstname"
+                                        value={formData.firstname}
                                         onChange={handleChange}
-                                        className={errors.firstName ? "border-red-500" : ""}
+                                        className={errors.firstname ? "border-red-500" : ""}
+                                        placeholder="e.g., John"
                                     />
-                                    {errors.firstName && (
-                                        <p className="text-red-500 text-xs">{errors.firstName}</p>
-                                    )}
+                                    {errors.firstname && <p className="text-red-500 text-xs">{errors.firstname}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="lastName">Last Name</Label>
+                                    <Label htmlFor="lastname">Last Name</Label>
                                     <Input
-                                        id="lastName"
-                                        name="lastName"
-                                        value={formData.lastName}
+                                        id="lastname"
+                                        name="lastname"
+                                        value={formData.lastname}
                                         onChange={handleChange}
-                                        className={errors.lastName ? "border-red-500" : ""}
+                                        className={errors.lastname ? "border-red-500" : ""}
+                                        placeholder="e.g., Doe"
                                     />
-                                    {errors.lastName && (
-                                        <p className="text-red-500 text-xs">{errors.lastName}</p>
-                                    )}
+                                    {errors.lastname && <p className="text-red-500 text-xs">{errors.lastname}</p>}
                                 </div>
                             </div>
 
@@ -556,33 +556,27 @@ const AdminStudent = () => {
                                     value={formData.email}
                                     onChange={handleChange}
                                     className={errors.email ? "border-red-500" : ""}
+                                    placeholder="e.g., student@example.com"
                                 />
-                                {errors.email && (
-                                    <p className="text-red-500 text-xs">{errors.email}</p>
-                                )}
+                                {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
                             </div>
 
                             <Label>Date of Birth</Label>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Input
-                                        id="birthDay"
-                                        name="birthDay"
+                                        id="day"
+                                        name="day"
                                         placeholder="Day"
-                                        value={formData.birthDay}
+                                        value={formData.day}
                                         onChange={handleChange}
-                                        className={errors.birthDay ? "border-red-500" : ""}
+                                        className={errors.day ? "border-red-500" : ""}
                                     />
-                                    {errors.birthDay && (
-                                        <p className="text-red-500 text-xs">{errors.birthDay}</p>
-                                    )}
+                                    {errors.day && <p className="text-red-500 text-xs">{errors.day}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Select
-                                        value={formData.birthMonth}
-                                        onValueChange={(value) => handleSelectChange('birthMonth', value)}
-                                    >
-                                        <SelectTrigger className={errors.birthMonth ? "border-red-500" : ""}>
+                                    <Select value={formData.month} onValueChange={(value) => handleSelectChange("month", value)}>
+                                        <SelectTrigger className={errors.month ? "border-red-500" : ""}>
                                             <SelectValue placeholder="Month" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -593,39 +587,33 @@ const AdminStudent = () => {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.birthMonth && (
-                                        <p className="text-red-500 text-xs">{errors.birthMonth}</p>
-                                    )}
+                                    {errors.month && <p className="text-red-500 text-xs">{errors.month}</p>}
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="course">Course</Label>
-                                <Select
-                                    value={formData.course}
-                                    onValueChange={(value) => handleSelectChange('course', value)}
-                                >
-                                    <SelectTrigger className={errors.course ? "border-red-500" : ""}>
+                                <Label htmlFor="course">Course (Optional)</Label>
+                                <Select value={formData.course} onValueChange={(value) => handleSelectChange("course", value)}>
+                                    <SelectTrigger>
                                         <SelectValue placeholder="Select a course" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {courses.map((course) => (
-                                            <SelectItem key={course.id} value={course.name}>
+                                            <SelectItem key={course._id} value={course._id}>
                                                 {course.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                {errors.course && (
-                                    <p className="text-red-500 text-xs">{errors.course}</p>
-                                )}
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                            <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)} disabled={isLoading}>
                                 Cancel
                             </Button>
-                            <Button type="submit">Create Student</Button>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? "Creating..." : "Create Student"}
+                            </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
@@ -636,77 +624,64 @@ const AdminStudent = () => {
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Edit Student</DialogTitle>
-                        <DialogDescription>
-                            Update the student information below.
-                        </DialogDescription>
+                        <DialogDescription>Update the student information below.</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleEditStudent}>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="firstName">First Name</Label>
+                                    <Label htmlFor="edit-firstname">First Name</Label>
                                     <Input
-                                        id="firstName"
-                                        name="firstName"
-                                        value={formData.firstName}
+                                        id="edit-firstname"
+                                        name="firstname"
+                                        value={formData.firstname}
                                         onChange={handleChange}
-                                        className={errors.firstName ? "border-red-500" : ""}
+                                        className={errors.firstname ? "border-red-500" : ""}
                                     />
-                                    {errors.firstName && (
-                                        <p className="text-red-500 text-xs">{errors.firstName}</p>
-                                    )}
+                                    {errors.firstname && <p className="text-red-500 text-xs">{errors.firstname}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="lastName">Last Name</Label>
+                                    <Label htmlFor="edit-lastname">Last Name</Label>
                                     <Input
-                                        id="lastName"
-                                        name="lastName"
-                                        value={formData.lastName}
+                                        id="edit-lastname"
+                                        name="lastname"
+                                        value={formData.lastname}
                                         onChange={handleChange}
-                                        className={errors.lastName ? "border-red-500" : ""}
+                                        className={errors.lastname ? "border-red-500" : ""}
                                     />
-                                    {errors.lastName && (
-                                        <p className="text-red-500 text-xs">{errors.lastName}</p>
-                                    )}
+                                    {errors.lastname && <p className="text-red-500 text-xs">{errors.lastname}</p>}
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="edit-email">Email</Label>
                                 <Input
-                                    id="email"
+                                    id="edit-email"
                                     name="email"
                                     type="email"
                                     value={formData.email}
                                     onChange={handleChange}
                                     className={errors.email ? "border-red-500" : ""}
                                 />
-                                {errors.email && (
-                                    <p className="text-red-500 text-xs">{errors.email}</p>
-                                )}
+                                {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
                             </div>
 
                             <Label>Date of Birth</Label>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Input
-                                        id="birthDay"
-                                        name="birthDay"
+                                        id="edit-day"
+                                        name="day"
                                         placeholder="Day"
-                                        value={formData.birthDay}
+                                        value={formData.day}
                                         onChange={handleChange}
-                                        className={errors.birthDay ? "border-red-500" : ""}
+                                        className={errors.day ? "border-red-500" : ""}
                                     />
-                                    {errors.birthDay && (
-                                        <p className="text-red-500 text-xs">{errors.birthDay}</p>
-                                    )}
+                                    {errors.day && <p className="text-red-500 text-xs">{errors.day}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Select
-                                        value={formData.birthMonth}
-                                        onValueChange={(value) => handleSelectChange('birthMonth', value)}
-                                    >
-                                        <SelectTrigger className={errors.birthMonth ? "border-red-500" : ""}>
+                                    <Select value={formData.month} onValueChange={(value) => handleSelectChange("month", value)}>
+                                        <SelectTrigger className={errors.month ? "border-red-500" : ""}>
                                             <SelectValue placeholder="Month" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -717,57 +692,70 @@ const AdminStudent = () => {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.birthMonth && (
-                                        <p className="text-red-500 text-xs">{errors.birthMonth}</p>
-                                    )}
+                                    {errors.month && <p className="text-red-500 text-xs">{errors.month}</p>}
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="course">Course</Label>
-                                <Select
-                                    value={formData.course}
-                                    onValueChange={(value) => handleSelectChange('course', value)}
-                                >
-                                    <SelectTrigger className={errors.course ? "border-red-500" : ""}>
+                                <Label htmlFor="edit-course">Course (Optional)</Label>
+                                <Select value={formData.course} onValueChange={(value) => handleSelectChange("course", value)}>
+                                    <SelectTrigger>
                                         <SelectValue placeholder="Select a course" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {courses.map((course) => (
-                                            <SelectItem key={course.id} value={course.name}>
+                                            <SelectItem key={course._id} value={course._id}>
                                                 {course.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                {errors.course && (
-                                    <p className="text-red-500 text-xs">{errors.course}</p>
-                                )}
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
+                            <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)} disabled={isLoading}>
                                 Cancel
                             </Button>
-                            <Button type="submit">Save Changes</Button>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? "Saving..." : "Save Changes"}
+                            </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
 
             {/* Delete Student Modal */}
-            {/* <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Delete Student</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this student? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="p-4 */}
-
+            <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Delete Student</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this student? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+                        {selectedStudent && (
+                            <>
+                                <h4 className="font-medium flex items-center gap-2">
+                                    <User className="h-4 w-4" />
+                                    {selectedStudent.firstname} {selectedStudent.lastname}
+                                </h4>
+                                <p className="text-sm text-muted-foreground mt-1">{selectedStudent.email}</p>
+                            </>
+                        )}
+                    </div>
+                    <DialogFooter className="mt-4">
+                        <Button type="button" variant="outline" onClick={() => setIsDeleteModalOpen(false)} disabled={isLoading}>
+                            Cancel
+                        </Button>
+                        <Button type="button" variant="destructive" onClick={handleDeleteStudent} disabled={isLoading}>
+                            {isLoading ? "Deleting..." : "Delete Student"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
 
-export default AdminStudent;
+export default AdminStudent

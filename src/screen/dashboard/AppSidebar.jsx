@@ -158,10 +158,10 @@ const AppSidebar = ({ children }) => {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className={`w-full justify-start gap-2 ${!open && "lg:justify-center"}`}>
                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src="/src/assets/avatar.png" alt={user?.name || "User"} />
+                                        <AvatarImage src="/src/assets/avatar.png" alt={`${user?.firstname} ${user?.lastname}` || "User"} />
                                         <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
                                     </Avatar>
-                                    {open && <span className="truncate">{user?.name || "User"}</span>}
+                                    {open && <span className="truncate">{`${user?.firstname} ${user?.lastname}` || "User"}</span>}
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56">
@@ -205,7 +205,7 @@ const AppSidebar = ({ children }) => {
                         </Button>
 
                         <h1 className="text-xl font-semibold text-foreground">
-                            {role.charAt(0).toUpperCase() + role.slice(1)} Dashboard
+                            {user?.organization?.name} {role.charAt(0).toUpperCase() + role.slice(1)} Dashboard
                         </h1>
                     </div>
 
