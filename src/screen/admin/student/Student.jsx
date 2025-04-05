@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import {
     Search,
@@ -38,9 +36,12 @@ import { sendToast } from "../../../components/utilis"
 import useAuthStore from "../../../store/useAuthStore"
 import { createUserByRole, getUsers, updateUser, deleteUser } from "../../../api/auth"
 import { getCourses } from "../../../api/auth"
+import { useNavigate } from "react-router-dom"
+
 
 const AdminStudent = () => {
     const { user } = useAuthStore()
+    const navigate = useNavigate();
 
     // State variables
     const [students, setStudents] = useState([])
@@ -413,7 +414,7 @@ const AdminStudent = () => {
                                     </tr>
                                 ) : students.length > 0 ? (
                                     students.map((student) => (
-                                        <tr key={student._id} className="border-b">
+                                        <tr onClick={() => navigate(`/dashboard/students/${student?._id}`)} key={student._id} className="border-b cursor-pointer">
                                             <td className="p-3 font-mono text-sm">{student._id.substring(0, 6)}</td>
                                             <td className="p-3">
                                                 <div className="flex items-center gap-3">

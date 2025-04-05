@@ -14,6 +14,7 @@ import AdminCourse from "../screen/admin/courses/Course"
 import AssignmentPage from "../screen/student/project/Project"
 import ClassSchedulePage from "../screen/student/schedule/Schedule"
 import AttendancePage from "../screen/student/attendance/Attendance"
+import AdminStudentDetails from "../screen/admin/student/StudentDetails"
 
 const ScrollToTop = () => {
     const { pathname } = useLocation()
@@ -81,6 +82,10 @@ const Routes = () => {
                         {
                             path: "students",
                             element: <AdminStudent />,
+                        },
+                        {
+                            path: "students/:id",
+                            element: <AdminStudentDetails />,
                         },
                         {
                             path: "tutors",
