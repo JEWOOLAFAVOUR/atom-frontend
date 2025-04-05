@@ -86,3 +86,8 @@ export const deleteCourse = async (id) => {
     return await makeApiRequest('DELETE', `/organization/course/${id}`);
 };
 
+
+export const fetchDashboard = async () => {
+    return await makeApiRequest('GET', `/organization/users/dashboard`);
+};
+
