@@ -103,7 +103,7 @@ const AdminClassDashboard = () => {
       const response = await getClass(params)
       setClasses(response.data?.data)
       setTotalPages(response.totalPages)
-      setTotalClasses(response.total)
+      setTotalClasses(response?.data?.total)
     } catch (error) {
     //   toast({
     //     title: "Error",
