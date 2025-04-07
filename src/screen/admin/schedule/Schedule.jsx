@@ -39,13 +39,11 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-// import { useToast } from "@/components/ui/use-toast"
 import { createClass, getClass, updateClass, deleteClass, getCourses, getUsers } from "../../../api/auth"
 import { sendToast } from "../../../components/utilis"
 import useAuthStore from "../../../store/useAuthStore"
 
 const AdminClassDashboard = () => {
-    //   const { toast } = useToast()
     const { user } = useAuthStore()
     const [isLoading, setIsLoading] = useState(true)
     const [classes, setClasses] = useState([])
@@ -59,6 +57,9 @@ const AdminClassDashboard = () => {
     const [selectedClass, setSelectedClass] = useState(null)
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
 
+    // Check if user is admin
+    const isAdmin = user?.role === "admin"
+
     // Form state for create/edit
     const [formData, setFormData] = useState({
         topic: "",
@@ -68,25 +69,15 @@ const AdminClassDashboard = () => {
         students: [],
         startTime: "",
         endTime: "",
-        organization: "", // This might be pre-filled from your auth context
+        organization: user?.organization?._id || "",
     })
 
-    // Mock data for dropdowns
-    //   const tutors = [
-    //     { id: "1", name: "Dr. Sarah Miller" },
-    //     { id: "2", name: "Prof. David Kim" },
-    //     { id: "3", name: "Dr. Lisa Wang" },
-    //   ]
+    // Selected students state (for multi-select)
+    const [selectedStudents, setSelectedStudents] = useState([])
 
-    const [tutors, setTutors] = useState([]);
-
-
+    const [tutors, setTutors] = useState([])
     const [courses, setCourses] = useState([])
-
     const [studentsList, setStudentsList] = useState([])
-
-
-    console.log('......................................', studentsList)
 
     // Fetch classes
     const fetchClasses = async () => {
@@ -99,12 +90,11 @@ const AdminClassDashboard = () => {
             }
 
             const response = await getClass(params)
-            setClasses(response.data?.data)
-            setTotalPages(response.totalPages)
-            setTotalClasses(response?.data?.total)
+            setClasses(response.data?.data || [])
+            setTotalPages(response.totalPages || 1)
+            setTotalClasses(response?.data?.total || 0)
         } catch (error) {
-            sendToast("error", response?.data?.message)
-
+            sendToast("error", "Failed to fetch classes")
         } finally {
             setIsLoading(false)
         }
@@ -115,53 +105,47 @@ const AdminClassDashboard = () => {
             // Prepare params for students
             const studentParams = {
                 userType: "student",
-                limit: "10",
+                limit: "100", // Increased limit to ensure we get all students
             };
 
             if (user?.organization?._id) {
                 studentParams.organizationId = user.organization._id;
             }
 
-            console.log("Fetching students with params:", studentParams);
             const studentRes = await getUsers(studentParams);
 
-            // Prepare params for tutors
-            const tutorParams = { ...studentParams, userType: "tutor" };
-            const tutorRes = await getUsers(tutorParams);
+            // Only fetch tutors if the user is an admin
+            if (isAdmin) {
+                const tutorParams = { ...studentParams, userType: "tutor" };
+                const tutorRes = await getUsers(tutorParams);
 
-            console.log("Student response:", studentRes);
+                if (tutorRes.data?.success) {
+                    setTutors(tutorRes.data.data || []);
+                }
+            }
 
-            if (studentRes.data?.success && tutorRes.data?.success) {
-                setStudentsList(studentRes.data.data);
-                setTutors(tutorRes.data.data);
+            if (studentRes.data?.success) {
+                setStudentsList(studentRes.data.data || []);
             } else {
-                sendToast("error", studentRes?.data?.message || "Failed to fetch students or tutors");
+                sendToast("error", studentRes?.data?.message || "Failed to fetch students");
             }
         } catch (error) {
             console.error("Fetch error:", error);
-            sendToast("error", "Failed to fetch students or tutors");
+            sendToast("error", "Failed to fetch students");
         }
     };
 
-
     const fetchCourses = async () => {
         try {
-            // let page = 1
-            // Build query parameters
             const params = new URLSearchParams()
-            //   if (page) params.append('page', page.toString())
             if (user?.organization?._id) params.append('organization', user.organization._id)
-            //   if (searchQuery) params.append('search', searchQuery)
 
-            // Make API request
             const response = await getCourses(params.toString())
 
-            console.log('resposne from get courses', response)
-
             if (response.data?.success) {
-                setCourses(response.data.data)
+                setCourses(response.data.data || [])
             } else {
-                sendToast("error", response?.data?.message)
+                sendToast("error", response?.data?.message || "Failed to fetch courses")
             }
         } catch (error) {
             console.error("Error fetching courses:", error)
@@ -169,28 +153,53 @@ const AdminClassDashboard = () => {
         }
     }
 
-
     useEffect(() => {
         fetchClasses();
         fetchCourses();
         fetchStudents();
     }, [currentPage, searchTerm, selectedStatus])
 
+    // Function to handle student selection
+    const handleStudentSelection = (studentId) => {
+        // Check if already selected
+        if (selectedStudents.includes(studentId)) {
+            // If already selected, remove it
+            setSelectedStudents(selectedStudents.filter(id => id !== studentId));
+        } else {
+            // If not selected, add it
+            setSelectedStudents([...selectedStudents, studentId]);
+        }
+    }
+
+    // Update formData whenever selectedStudents changes
+    useEffect(() => {
+        setFormData(prev => ({
+            ...prev,
+            students: selectedStudents
+        }));
+    }, [selectedStudents]);
+
     // Handle form submission for create/edit
     const handleSubmit = async (e) => {
         e.preventDefault()
         setIsLoading(true)
 
+        const submitData = { ...formData };
+
+        // If user is a tutor, use their ID as the tutor value
+        if (!isAdmin) {
+            submitData.tutor = user._id;
+        }
+
         try {
             if (selectedClass) {
                 // Update existing class
-                await updateClass(selectedClass._id, formData)
+                await updateClass(selectedClass._id, submitData)
                 sendToast("success", "Class updated successfully")
                 setEditDialogOpen(false)
             } else {
                 // Create new class
-                console.log({ formData })
-                await createClass(formData)
+                await createClass(submitData)
                 sendToast("success", "Class created successfully")
                 setCreateDialogOpen(false)
             }
@@ -229,27 +238,32 @@ const AdminClassDashboard = () => {
             students: [],
             startTime: "",
             endTime: "",
-            organization: user?.organization, // This might be pre-filled from your auth context
+            organization: user?.organization?._id || "",
         })
+        setSelectedStudents([]);
     }
 
     // Open edit dialog with class data
     const openEditDialog = (classData) => {
         setSelectedClass(classData)
+
         // Format dates for the form
         const startDateTime = new Date(classData.startTime).toISOString().slice(0, 16) // Format as YYYY-MM-DDTHH:MM
-
         const endDateTime = new Date(classData.endTime).toISOString().slice(0, 16)
+
+        // Extract student IDs
+        const studentIds = classData.students.map((student) => student._id || student);
+        setSelectedStudents(studentIds);
 
         setFormData({
             topic: classData.topic,
             description: classData.description,
             tutor: classData.tutor._id || classData.tutor,
             course: classData.course._id || classData.course,
-            students: classData.students.map((student) => student._id || student),
+            students: studentIds,
             startTime: startDateTime,
             endTime: endDateTime,
-            organization: classData.organization,
+            organization: classData.organization || user?.organization?._id,
         })
         setEditDialogOpen(true)
     }
@@ -294,6 +308,135 @@ const AdminClassDashboard = () => {
         })
     }
 
+    // Function to render the class form (used for both create and edit)
+    const renderClassForm = (isEdit = false) => (
+        <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-1 gap-2">
+                    <Label htmlFor={`${isEdit ? 'edit-' : ''}topic`}>Topic</Label>
+                    <Input
+                        id={`${isEdit ? 'edit-' : ''}topic`}
+                        value={formData.topic}
+                        onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                        placeholder="E.g., Introduction to React Hooks"
+                        required
+                    />
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                    <Label htmlFor={`${isEdit ? 'edit-' : ''}description`}>Description</Label>
+                    <Textarea
+                        id={`${isEdit ? 'edit-' : ''}description`}
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="Class description and objectives"
+                        required
+                    />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    {isAdmin && (
+                        <div className="grid grid-cols-1 gap-2">
+                            <Label htmlFor={`${isEdit ? 'edit-' : ''}tutor`}>Tutor</Label>
+                            <Select
+                                value={formData.tutor}
+                                onValueChange={(value) => setFormData({ ...formData, tutor: value })}
+                                required
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Tutor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {tutors.map((tutor) => (
+                                        <SelectItem key={tutor?._id} value={tutor?._id}>
+                                            {`${tutor.firstname} ${tutor.lastname}`}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    <div className={`grid grid-cols-1 gap-2 ${isAdmin ? '' : 'col-span-2'}`}>
+                        <Label htmlFor={`${isEdit ? 'edit-' : ''}course`}>Course</Label>
+                        <Select
+                            value={formData.course}
+                            onValueChange={(value) => setFormData({ ...formData, course: value })}
+                            required
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select Course" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {courses.map((course) => (
+                                    <SelectItem key={course?._id} value={course?._id}>
+                                        {course?.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2">
+                    <Label htmlFor={`${isEdit ? 'edit-' : ''}students`}>Students</Label>
+                    <div className="border rounded-md p-2 max-h-40 overflow-y-auto">
+                        <div className="mb-2">
+                            <p className="text-sm text-muted-foreground">Select multiple students (currently selected: {selectedStudents.length})</p>
+                        </div>
+                        {studentsList.map((student) => (
+                            <div key={student?._id} className="flex items-center space-x-2 py-1">
+                                <input
+                                    type="checkbox"
+                                    id={`student-${student._id}`}
+                                    checked={selectedStudents.includes(student._id)}
+                                    onChange={() => handleStudentSelection(student._id)}
+                                />
+                                <label htmlFor={`student-${student._id}`} className="text-sm">
+                                    {`${student.firstname} ${student.lastname}`}
+                                </label>
+                            </div>
+                        ))}
+                        {studentsList.length === 0 && (
+                            <p className="text-sm text-muted-foreground py-2">No students available</p>
+                        )}
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-2">
+                        <Label htmlFor={`${isEdit ? 'edit-' : ''}startTime`}>Start Time</Label>
+                        <Input
+                            id={`${isEdit ? 'edit-' : ''}startTime`}
+                            type="datetime-local"
+                            value={formData.startTime}
+                            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                            required
+                        />
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                        <Label htmlFor={`${isEdit ? 'edit-' : ''}endTime`}>End Time</Label>
+                        <Input
+                            id={`${isEdit ? 'edit-' : ''}endTime`}
+                            type="datetime-local"
+                            value={formData.endTime}
+                            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                            required
+                        />
+                    </div>
+                </div>
+            </div>
+            <DialogFooter>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => isEdit ? setEditDialogOpen(false) : setCreateDialogOpen(false)}
+                >
+                    Cancel
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                    {isLoading ? (isEdit ? "Updating..." : "Creating...") : (isEdit ? "Update Class" : "Create Class")}
+                </Button>
+            </DialogFooter>
+        </form>
+    );
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -316,123 +459,7 @@ const AdminClassDashboard = () => {
                             <DialogTitle>Create New Class</DialogTitle>
                             <DialogDescription>Add a new class session to the schedule</DialogDescription>
                         </DialogHeader>
-                        <form onSubmit={handleSubmit}>
-                            <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-1 gap-2">
-                                    <Label htmlFor="topic">Topic</Label>
-                                    <Input
-                                        id="topic"
-                                        value={formData.topic}
-                                        onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                                        placeholder="E.g., Introduction to React Hooks"
-                                        required
-                                    />
-                                </div>
-                                <div className="grid grid-cols-1 gap-2">
-                                    <Label htmlFor="description">Description</Label>
-                                    <Textarea
-                                        id="description"
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        placeholder="Class description and objectives"
-                                        required
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid grid-cols-1 gap-2">
-                                        <Label htmlFor="tutor">Tutor</Label>
-                                        <Select
-                                            value={formData.tutor}
-                                            onValueChange={(value) => setFormData({ ...formData, tutor: value })}
-                                            required
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select Tutor" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {tutors.map((tutor) => (
-                                                    <SelectItem key={tutor?._id} value={tutor?._id}>
-                                                        {`${tutor.firstname} ${tutor.lastname}`}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="grid grid-cols-1 gap-2">
-                                        <Label htmlFor="course">Course</Label>
-                                        <Select
-                                            value={formData.course}
-                                            onValueChange={(value) => setFormData({ ...formData, course: value })}
-                                            required
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select Course" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {courses.map((course) => (
-                                                    <SelectItem key={course?._id} value={course?._id}>
-                                                        {course?.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-2">
-                                    <Label htmlFor="students">Students</Label>
-                                    <Select
-                                        value={formData.students}
-                                        onValueChange={(value) => setFormData({ ...formData, students: [value] })}
-                                        required
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Students" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {studentsList.map((student) => (
-                                                <SelectItem key={student?._id} value={student?._id}>
-                                                    {`${student.firstname} ${student.lastname}`}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <p className="text-xs text-muted-foreground">
-                                        Note: In a real implementation, this would be a multi-select
-                                    </p>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid grid-cols-1 gap-2">
-                                        <Label htmlFor="startTime">Start Time</Label>
-                                        <Input
-                                            id="startTime"
-                                            type="datetime-local"
-                                            value={formData.startTime}
-                                            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-1 gap-2">
-                                        <Label htmlFor="endTime">End Time</Label>
-                                        <Input
-                                            id="endTime"
-                                            type="datetime-local"
-                                            value={formData.endTime}
-                                            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                                    Cancel
-                                </Button>
-                                <Button type="submit" disabled={isLoading}>
-                                    {isLoading ? "Creating..." : "Create Class"}
-                                </Button>
-                            </DialogFooter>
-                        </form>
+                        {renderClassForm(false)}
                     </DialogContent>
                 </Dialog>
             </div>
@@ -444,122 +471,7 @@ const AdminClassDashboard = () => {
                         <DialogTitle>Edit Class</DialogTitle>
                         <DialogDescription>Update this class session</DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleSubmit}>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-1 gap-2">
-                                <Label htmlFor="edit-topic">Topic</Label>
-                                <Input
-                                    id="edit-topic"
-                                    value={formData.topic}
-                                    onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                                    placeholder="E.g., Introduction to React Hooks"
-                                    required
-                                />
-                            </div>
-                            <div className="grid grid-cols-1 gap-2">
-                                <Label htmlFor="edit-description">Description</Label>
-                                <Textarea
-                                    id="edit-description"
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Class description and objectives"
-                                    required
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="grid grid-cols-1 gap-2">
-                                    <Label htmlFor="edit-tutor">Tutor</Label>
-                                    <Select
-                                        value={formData.tutor}
-                                        onValueChange={(value) => setFormData({ ...formData, tutor: value })}
-                                        required
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Tutor" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {tutors.map((tutor) => (
-                                                <SelectItem key={tutor?._id} value={tutor?._id}>
-                                                    {`${tutor.firstname} ${tutor.lastname}`}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid grid-cols-1 gap-2">
-                                    <Label htmlFor="edit-course">Course</Label>
-                                    <Select
-                                        value={formData.course}
-                                        onValueChange={(value) => setFormData({ ...formData, course: value })}
-                                        required
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Course" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {courses.map((course) => (
-                                                <SelectItem key={course?._id} value={course?._id}>
-                                                    {course.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 gap-2">
-                                <Label htmlFor="edit-students">Students</Label>
-                                <Select
-                                    value={formData.students[0]}
-                                    onValueChange={(value) => setFormData({ ...formData, students: [value] })}
-                                    required
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Students" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {studentsList.map((student) => (
-                                            <SelectItem key={student?._id} value={student?._id}>
-                                                {`${student.firstname} ${student.lastname}`}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <p className="text-xs text-muted-foreground">
-                                    Note: In a real implementation, this would be a multi-select
-                                </p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="grid grid-cols-1 gap-2">
-                                    <Label htmlFor="edit-startTime">Start Time</Label>
-                                    <Input
-                                        id="edit-startTime"
-                                        type="datetime-local"
-                                        value={formData.startTime}
-                                        onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                                <div className="grid grid-cols-1 gap-2">
-                                    <Label htmlFor="edit-endTime">End Time</Label>
-                                    <Input
-                                        id="edit-endTime"
-                                        type="datetime-local"
-                                        value={formData.endTime}
-                                        onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
-                                Cancel
-                            </Button>
-                            <Button type="submit" disabled={isLoading}>
-                                {isLoading ? "Updating..." : "Update Class"}
-                            </Button>
-                        </DialogFooter>
-                    </form>
+                    {renderClassForm(true)}
                 </DialogContent>
             </Dialog>
 
@@ -613,14 +525,18 @@ const AdminClassDashboard = () => {
                                     <h4 className="text-sm font-medium mb-1">Tutor</h4>
                                     <div className="flex items-center gap-2">
                                         <User className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm">{selectedClass.tutor.name || "Dr. Sarah Miller"}</span>
+                                        <span className="text-sm">
+                                            {selectedClass.tutor?.firstname && selectedClass.tutor?.lastname
+                                                ? `${selectedClass.tutor.firstname} ${selectedClass.tutor.lastname}`
+                                                : selectedClass.tutor?.name || "Not specified"}
+                                        </span>
                                     </div>
                                 </div>
                                 <div>
                                     <h4 className="text-sm font-medium mb-1">Course</h4>
                                     <div className="flex items-center gap-2">
                                         <Info className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm">{selectedClass.course.name || "Web Development Fundamentals"}</span>
+                                        <span className="text-sm">{selectedClass.course?.name || "Not specified"}</span>
                                     </div>
                                 </div>
                                 <div>
@@ -631,7 +547,11 @@ const AdminClassDashboard = () => {
                                                 {selectedClass.students.map((student, idx) => (
                                                     <li key={idx} className="flex items-center gap-2 text-sm">
                                                         <User className="h-3 w-3 text-muted-foreground" />
-                                                        <span>{student.name || `Student ${idx + 1}`}</span>
+                                                        <span>
+                                                            {student.firstname && student.lastname
+                                                                ? `${student.firstname} ${student.lastname}`
+                                                                : student.name || `Student ${idx + 1}`}
+                                                        </span>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -708,7 +628,7 @@ const AdminClassDashboard = () => {
                                 <ScrollArea className="h-[500px]">
                                     <div className="space-y-4">
                                         {classes.map((cls) => (
-                                            <Card key={cls.id || cls._id} className="overflow-hidden">
+                                            <Card key={cls._id} className="overflow-hidden">
                                                 <div
                                                     className="bg-primary/5 border-l-4 p-4"
                                                     style={{
@@ -749,7 +669,7 @@ const AdminClassDashboard = () => {
                                                                         Edit Class
                                                                     </DropdownMenuItem>
                                                                     <DropdownMenuItem
-                                                                        onClick={() => handleDeleteClass(cls._id || cls.id)}
+                                                                        onClick={() => handleDeleteClass(cls._id)}
                                                                         className="text-red-600"
                                                                     >
                                                                         <Trash2 className="h-4 w-4 mr-2" />
@@ -768,12 +688,18 @@ const AdminClassDashboard = () => {
                                                         </div>
                                                         <div className="flex items-center gap-2 text-sm">
                                                             <User className="h-4 w-4 text-muted-foreground" />
-                                                            <span>{`${cls.tutor?.firstname} ${cls?.tutor?.lastname}` || "Tutor Name"}</span>
+                                                            <span>
+                                                                {cls.tutor?.firstname && cls.tutor?.lastname
+                                                                    ? `${cls.tutor.firstname} ${cls.tutor.lastname}`
+                                                                    : "Not specified"}
+                                                            </span>
                                                         </div>
-                                                        {/* <div className="flex items-center gap-2 text-sm">
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                              <span>{cls.location || "Room 201, Tech Building"}</span>
-                            </div> */}
+                                                        <div className="flex items-center gap-2 text-sm">
+                                                            <Info className="h-4 w-4 text-muted-foreground" />
+                                                            <span>
+                                                                {cls.students?.length || 0} student{cls.students?.length !== 1 ? 's' : ''}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </Card>
@@ -797,6 +723,7 @@ const AdminClassDashboard = () => {
                                 </div>
                             )}
                         </CardContent>
+
                         {classes.length > 0 && (
                             <CardFooter className="flex justify-between items-center border-t p-4">
                                 <div className="text-sm text-muted-foreground">
