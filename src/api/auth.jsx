@@ -113,3 +113,22 @@ export const updateClass = async (classId, data) => {
 export const deleteClass = async (classId) => {
     return await makeApiRequest('DELETE', `/organization/classes/${classId}`);
 };
+
+// attendance 
+
+export const createAttendance = async (data) => {
+    return await makeApiRequest('POST', '/organization/attendance/', data);
+};
+
+export const getAttendanceDetails = async (attendanceId) => {
+    return await makeApiRequest('GET', `/organization/attendance/${attendanceId}`, data);
+};
+
+export const signInAttendance = async (data) => {
+    return await makeApiRequest('POST', '/organization/attendance/siginin', data);
+};
+
+
+export const signOutAttendance = async (data) => {
+    return await makeApiRequest('POST', '/organization/attendance/signout', data);
+};
