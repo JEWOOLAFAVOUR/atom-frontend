@@ -101,7 +101,7 @@ const AdminClassDashboard = () => {
       }
 
       const response = await getClass(params)
-      setClasses(response.data)
+      setClasses(response.data?.data)
       setTotalPages(response.totalPages)
       setTotalClasses(response.total)
     } catch (error) {
@@ -726,12 +726,12 @@ const AdminClassDashboard = () => {
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <User className="h-4 w-4 text-muted-foreground" />
-                              <span>{cls.tutor?.name || "Dr. Sarah Miller"}</span>
+                              <span>{`${cls.tutor?.firstname} ${cls?.tutor?.lastname}` || "Tutor Name"}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
+                            {/* <div className="flex items-center gap-2 text-sm">
                               <MapPin className="h-4 w-4 text-muted-foreground" />
                               <span>{cls.location || "Room 201, Tech Building"}</span>
-                            </div>
+                            </div> */}
                           </div>
                         </div>
                       </Card>

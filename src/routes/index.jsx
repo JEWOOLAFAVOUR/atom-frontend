@@ -15,6 +15,7 @@ import AssignmentPage from "../screen/student/project/Project"
 import ClassSchedulePage from "../screen/student/schedule/Schedule"
 import AttendancePage from "../screen/student/attendance/Attendance"
 import AdminStudentDetails from "../screen/admin/student/StudentDetails"
+import AdminClassDashboard from "../screen/admin/schedule/Schedule"
 
 const ScrollToTop = () => {
     const { pathname } = useLocation()
@@ -53,6 +54,23 @@ const DashboardHandler = () => {
             return <StudentDashboard />
     }
 }
+
+const ClassHandler = () => {
+    const { user } = useAuthStore()
+
+    if (!user) return null
+
+    switch (user.role) {
+        case "admin":
+            return <AdminClassDashboard />
+        case "tutor":
+            return <ClassSchedulePage />
+        case "student":
+        default:
+            return <ClassSchedulePage />
+    }
+}
+
 
 const Routes = () => {
     const pageRoutes = [
@@ -98,7 +116,7 @@ const Routes = () => {
                         // Tutor routes
                         {
                             path: "schedule",
-                            element: <ClassSchedulePage />,
+                            element: <ClassHandler />,
                         },
                         {
                             path: "projects",
