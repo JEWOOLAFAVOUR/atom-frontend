@@ -64,7 +64,7 @@ const ClassHandler = () => {
         case "admin":
             return <AdminClassDashboard />
         case "tutor":
-            return <ClassSchedulePage />
+            return <AdminClassDashboard />
         case "student":
         default:
             return <ClassSchedulePage />
