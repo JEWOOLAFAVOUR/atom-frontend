@@ -91,3 +91,21 @@ export const fetchDashboard = async () => {
     return await makeApiRequest('GET', `/organization/users/dashboard`);
 };
 
+// classes 
+export const createClass = async (data) => {
+    return await makeApiRequest('POST', '/organization/classes/', data);
+};
+
+export const getClass = async (params = {}) => {
+    const queryString = buildQueryString(params);
+    const endpoint = `/organization/classes/${queryString ? `?${queryString}` : ''}`;
+    return await makeApiRequest('GET', endpoint);
+};
+
+export const updateClass = async (classId, data) => {
+    return await makeApiRequest('PUT', `/organization/classes/${classId}`, data);
+};
+
+export const deleteClass = async (classId) => {
+    return await makeApiRequest('DELETE', `/organization/classes/${classId}`);
+};
