@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 // import { useToast } from "@/components/ui/use-toast"
 import { createClass, getClass, updateClass, deleteClass} from "../../../api/auth"
+import { sendToast } from "../../../components/utilis"
 
 const AdminClassDashboard = () => {
 //   const { toast } = useToast()
@@ -105,11 +106,8 @@ const AdminClassDashboard = () => {
       setTotalPages(response.totalPages)
       setTotalClasses(response?.data?.total)
     } catch (error) {
-    //   toast({
-    //     title: "Error",
-    //     description: "Failed to fetch classes",
-    //     variant: "destructive",
-    //   })
+        sendToast("error", response?.data?.message)
+    
     } finally {
       setIsLoading(false)
     }
@@ -128,28 +126,18 @@ const AdminClassDashboard = () => {
       if (selectedClass) {
         // Update existing class
         await updateClass(selectedClass._id, formData)
-        // toast({
-        //   title: "Success",
-        //   description: "Class updated successfully",
-        // })
+        sendToast("success", "Class updated successfully")
         setEditDialogOpen(false)
       } else {
         // Create new class
         await createClass(formData)
-        // toast({
-        //   title: "Success",
-        //   description: "Class created successfully",
-        // })
+        sendToast("success", "Class created successfully")
         setCreateDialogOpen(false)
       }
       // Refresh the class list
       fetchClasses()
     } catch (error) {
-    //   toast({
-    //     title: "Error",
-    //     description: selectedClass ? "Failed to update class" : "Failed to create class",
-    //     variant: "destructive",
-    //   })
+        sendToast("error", selectedClass ? "Failed to update class" : "Failed to create class")
     } finally {
       setIsLoading(false)
     }
@@ -161,17 +149,10 @@ const AdminClassDashboard = () => {
       setIsLoading(true)
       try {
         await deleteClass(classId)
-        // toast({
-        //   title: "Success",
-        //   description: "Class deleted successfully",
-        // })
+        sendToast("success", "Class deleted successfully")
         fetchClasses()
       } catch (error) {
-        // toast({
-        //   title: "Error",
-        //   description: "Failed to delete class",
-        //   variant: "destructive",
-        // })
+        sendToast("error", "Failed to delete class")
       } finally {
         setIsLoading(false)
       }
