@@ -225,6 +225,7 @@ const AdminStudent = () => {
         if (validateForm()) {
             setIsLoading(true)
             try {
+                console.log(formData)
                 const response = await createUserByRole(formData)
 
                 if (response.data?.success) {
