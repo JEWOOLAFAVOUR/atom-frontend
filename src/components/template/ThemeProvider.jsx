@@ -1,29 +1,34 @@
-"use client"
-
 import { createContext, useContext, useEffect, useState } from "react"
 
 const ThemeContext = createContext({
     theme: "light",
-    setTheme: () => null,
+    setTheme: (theme) => null,
 })
 
 export const ThemeProvider = ({ children }) => {
-    const [theme, setTheme] = useState("light")
+    // Initialize with undefined to avoid hydration mismatch
+    const [theme, setTheme] = useState(undefined)
 
+    // Load theme from localStorage only after component mounts (client-side)
     useEffect(() => {
         const storedTheme = localStorage.getItem("theme") || "light"
         setTheme(storedTheme)
     }, [])
 
+    // Apply theme to document and save to localStorage
     useEffect(() => {
+        // Skip if theme is undefined (initial server render)
+        if (theme === undefined) return
+
         const root = window.document.documentElement
         root.classList.remove("light", "dark")
         root.classList.add(theme)
         localStorage.setItem("theme", theme)
     }, [theme])
 
+    // Provide a default theme for server-side rendering
     const value = {
-        theme,
+        theme: theme || "light",
         setTheme: (newTheme) => setTheme(newTheme),
     }
 
@@ -37,4 +42,3 @@ export const useTheme = () => {
     }
     return context
 }
-
