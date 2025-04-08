@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import {
     CalendarIcon,
@@ -39,12 +41,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { createClass, getClass, updateClass, deleteClass, getCourses, getUsers } from "../../../api/auth"
+import { getClass, updateClass, deleteClass, getCourses, getUsers, createClass } from "../../../api/auth"
 import { sendToast } from "../../../components/utilis"
 import useAuthStore from "../../../store/useAuthStore"
 
 const AdminClassDashboard = () => {
     const { user } = useAuthStore()
+    // console.log('...................................', user)
     const [isLoading, setIsLoading] = useState(true)
     const [classes, setClasses] = useState([])
     const [totalPages, setTotalPages] = useState(1)
@@ -61,10 +64,10 @@ const AdminClassDashboard = () => {
     const isAdmin = user?.role === "admin"
 
     // Form state for create/edit
-    const [formData, setFormData] = useState({
+    let [formData, setFormData] = useState({
         topic: "",
         description: "",
-        tutor: "",
+        tutor: isAdmin ? "" : user.id,
         course: "",
         students: [],
         startTime: "",
@@ -106,39 +109,39 @@ const AdminClassDashboard = () => {
             const studentParams = {
                 userType: "student",
                 limit: "100", // Increased limit to ensure we get all students
-            };
-
-            if (user?.organization?._id) {
-                studentParams.organizationId = user.organization._id;
             }
 
-            const studentRes = await getUsers(studentParams);
+            if (user?.organization?._id) {
+                studentParams.organizationId = user.organization._id
+            }
+
+            const studentRes = await getUsers(studentParams)
 
             // Only fetch tutors if the user is an admin
             if (isAdmin) {
-                const tutorParams = { ...studentParams, userType: "tutor" };
-                const tutorRes = await getUsers(tutorParams);
+                const tutorParams = { ...studentParams, userType: "tutor" }
+                const tutorRes = await getUsers(tutorParams)
 
                 if (tutorRes.data?.success) {
-                    setTutors(tutorRes.data.data || []);
+                    setTutors(tutorRes.data.data || [])
                 }
             }
 
             if (studentRes.data?.success) {
-                setStudentsList(studentRes.data.data || []);
+                setStudentsList(studentRes.data.data || [])
             } else {
-                sendToast("error", studentRes?.data?.message || "Failed to fetch students");
+                sendToast("error", studentRes?.data?.message || "Failed to fetch students")
             }
         } catch (error) {
-            console.error("Fetch error:", error);
-            sendToast("error", "Failed to fetch students");
+            console.error("Fetch error:", error)
+            sendToast("error", "Failed to fetch students")
         }
-    };
+    }
 
     const fetchCourses = async () => {
         try {
             const params = new URLSearchParams()
-            if (user?.organization?._id) params.append('organization', user.organization._id)
+            if (user?.organization?._id) params.append("organization", user.organization._id)
 
             const response = await getCourses(params.toString())
 
@@ -154,9 +157,9 @@ const AdminClassDashboard = () => {
     }
 
     useEffect(() => {
-        fetchClasses();
-        fetchCourses();
-        fetchStudents();
+        fetchClasses()
+        fetchCourses()
+        fetchStudents()
     }, [currentPage, searchTerm, selectedStatus])
 
     // Function to handle student selection
@@ -164,32 +167,34 @@ const AdminClassDashboard = () => {
         // Check if already selected
         if (selectedStudents.includes(studentId)) {
             // If already selected, remove it
-            setSelectedStudents(selectedStudents.filter(id => id !== studentId));
+            setSelectedStudents(selectedStudents.filter((id) => id !== studentId))
         } else {
             // If not selected, add it
-            setSelectedStudents([...selectedStudents, studentId]);
+            setSelectedStudents([...selectedStudents, studentId])
         }
     }
 
     // Update formData whenever selectedStudents changes
     useEffect(() => {
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            students: selectedStudents
-        }));
-    }, [selectedStudents]);
+            students: selectedStudents,
+        }))
+    }, [selectedStudents])
 
     // Handle form submission for create/edit
     const handleSubmit = async (e) => {
         e.preventDefault()
         setIsLoading(true)
 
-        const submitData = { ...formData };
+        const submitData = { ...formData }
 
         // If user is a tutor, use their ID as the tutor value
         if (!isAdmin) {
-            submitData.tutor = user._id;
+            submitData.tutor = user.id
         }
+
+        console.log("Submitting with tutor ID:", submitData.tutor)
 
         try {
             if (selectedClass) {
@@ -199,13 +204,16 @@ const AdminClassDashboard = () => {
                 setEditDialogOpen(false)
             } else {
                 // Create new class
-                await createClass(submitData)
+                console.log({ submitData })
+                const response = await createClass(submitData)
+                console.log('response from create class', response)
                 sendToast("success", "Class created successfully")
                 setCreateDialogOpen(false)
             }
             // Refresh the class list
             fetchClasses()
         } catch (error) {
+            console.log("errorrrrrrrrr", error)
             sendToast("error", selectedClass ? "Failed to update class" : "Failed to create class")
         } finally {
             setIsLoading(false)
@@ -233,14 +241,14 @@ const AdminClassDashboard = () => {
         setFormData({
             topic: "",
             description: "",
-            tutor: "",
+            tutor: isAdmin ? "" : user?.id,
             course: "",
             students: [],
             startTime: "",
             endTime: "",
             organization: user?.organization?._id || "",
         })
-        setSelectedStudents([]);
+        setSelectedStudents([])
     }
 
     // Open edit dialog with class data
@@ -252,8 +260,8 @@ const AdminClassDashboard = () => {
         const endDateTime = new Date(classData.endTime).toISOString().slice(0, 16)
 
         // Extract student IDs
-        const studentIds = classData.students.map((student) => student._id || student);
-        setSelectedStudents(studentIds);
+        const studentIds = classData.students.map((student) => student._id || student)
+        setSelectedStudents(studentIds)
 
         setFormData({
             topic: classData.topic,
@@ -313,9 +321,9 @@ const AdminClassDashboard = () => {
         <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-1 gap-2">
-                    <Label htmlFor={`${isEdit ? 'edit-' : ''}topic`}>Topic</Label>
+                    <Label htmlFor={`${isEdit ? "edit-" : ""}topic`}>Topic</Label>
                     <Input
-                        id={`${isEdit ? 'edit-' : ''}topic`}
+                        id={`${isEdit ? "edit-" : ""}topic`}
                         value={formData.topic}
                         onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
                         placeholder="E.g., Introduction to React Hooks"
@@ -323,9 +331,9 @@ const AdminClassDashboard = () => {
                     />
                 </div>
                 <div className="grid grid-cols-1 gap-2">
-                    <Label htmlFor={`${isEdit ? 'edit-' : ''}description`}>Description</Label>
+                    <Label htmlFor={`${isEdit ? "edit-" : ""}description`}>Description</Label>
                     <Textarea
-                        id={`${isEdit ? 'edit-' : ''}description`}
+                        id={`${isEdit ? "edit-" : ""}description`}
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         placeholder="Class description and objectives"
@@ -335,7 +343,7 @@ const AdminClassDashboard = () => {
                 <div className="grid grid-cols-2 gap-4">
                     {isAdmin && (
                         <div className="grid grid-cols-1 gap-2">
-                            <Label htmlFor={`${isEdit ? 'edit-' : ''}tutor`}>Tutor</Label>
+                            <Label htmlFor={`${isEdit ? "edit-" : ""}tutor`}>Tutor</Label>
                             <Select
                                 value={formData.tutor}
                                 onValueChange={(value) => setFormData({ ...formData, tutor: value })}
@@ -354,8 +362,8 @@ const AdminClassDashboard = () => {
                             </Select>
                         </div>
                     )}
-                    <div className={`grid grid-cols-1 gap-2 ${isAdmin ? '' : 'col-span-2'}`}>
-                        <Label htmlFor={`${isEdit ? 'edit-' : ''}course`}>Course</Label>
+                    <div className={`grid grid-cols-1 gap-2 ${isAdmin ? "" : "col-span-2"}`}>
+                        <Label htmlFor={`${isEdit ? "edit-" : ""}course`}>Course</Label>
                         <Select
                             value={formData.course}
                             onValueChange={(value) => setFormData({ ...formData, course: value })}
@@ -376,10 +384,12 @@ const AdminClassDashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-1 gap-2">
-                    <Label htmlFor={`${isEdit ? 'edit-' : ''}students`}>Students</Label>
+                    <Label htmlFor={`${isEdit ? "edit-" : ""}students`}>Students</Label>
                     <div className="border rounded-md p-2 max-h-40 overflow-y-auto">
                         <div className="mb-2">
-                            <p className="text-sm text-muted-foreground">Select multiple students (currently selected: {selectedStudents.length})</p>
+                            <p className="text-sm text-muted-foreground">
+                                Select multiple students (currently selected: {selectedStudents.length})
+                            </p>
                         </div>
                         {studentsList.map((student) => (
                             <div key={student?._id} className="flex items-center space-x-2 py-1">
@@ -394,16 +404,14 @@ const AdminClassDashboard = () => {
                                 </label>
                             </div>
                         ))}
-                        {studentsList.length === 0 && (
-                            <p className="text-sm text-muted-foreground py-2">No students available</p>
-                        )}
+                        {studentsList.length === 0 && <p className="text-sm text-muted-foreground py-2">No students available</p>}
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="grid grid-cols-1 gap-2">
-                        <Label htmlFor={`${isEdit ? 'edit-' : ''}startTime`}>Start Time</Label>
+                        <Label htmlFor={`${isEdit ? "edit-" : ""}startTime`}>Start Time</Label>
                         <Input
-                            id={`${isEdit ? 'edit-' : ''}startTime`}
+                            id={`${isEdit ? "edit-" : ""}startTime`}
                             type="datetime-local"
                             value={formData.startTime}
                             onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
@@ -411,9 +419,9 @@ const AdminClassDashboard = () => {
                         />
                     </div>
                     <div className="grid grid-cols-1 gap-2">
-                        <Label htmlFor={`${isEdit ? 'edit-' : ''}endTime`}>End Time</Label>
+                        <Label htmlFor={`${isEdit ? "edit-" : ""}endTime`}>End Time</Label>
                         <Input
-                            id={`${isEdit ? 'edit-' : ''}endTime`}
+                            id={`${isEdit ? "edit-" : ""}endTime`}
                             type="datetime-local"
                             value={formData.endTime}
                             onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
@@ -426,16 +434,16 @@ const AdminClassDashboard = () => {
                 <Button
                     type="button"
                     variant="outline"
-                    onClick={() => isEdit ? setEditDialogOpen(false) : setCreateDialogOpen(false)}
+                    onClick={() => (isEdit ? setEditDialogOpen(false) : setCreateDialogOpen(false))}
                 >
                     Cancel
                 </Button>
                 <Button type="submit" disabled={isLoading}>
-                    {isLoading ? (isEdit ? "Updating..." : "Creating...") : (isEdit ? "Update Class" : "Create Class")}
+                    {isLoading ? (isEdit ? "Updating..." : "Creating...") : isEdit ? "Update Class" : "Create Class"}
                 </Button>
             </DialogFooter>
         </form>
-    );
+    )
 
     return (
         <div className="space-y-6">
@@ -668,10 +676,7 @@ const AdminClassDashboard = () => {
                                                                         <Edit className="h-4 w-4 mr-2" />
                                                                         Edit Class
                                                                     </DropdownMenuItem>
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => handleDeleteClass(cls._id)}
-                                                                        className="text-red-600"
-                                                                    >
+                                                                    <DropdownMenuItem onClick={() => handleDeleteClass(cls._id)} className="text-red-600">
                                                                         <Trash2 className="h-4 w-4 mr-2" />
                                                                         Delete Class
                                                                     </DropdownMenuItem>
@@ -697,7 +702,7 @@ const AdminClassDashboard = () => {
                                                         <div className="flex items-center gap-2 text-sm">
                                                             <Info className="h-4 w-4 text-muted-foreground" />
                                                             <span>
-                                                                {cls.students?.length || 0} student{cls.students?.length !== 1 ? 's' : ''}
+                                                                {cls.students?.length || 0} student{cls.students?.length !== 1 ? "s" : ""}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -945,4 +950,4 @@ const AdminClassDashboard = () => {
     )
 }
 
-export default AdminClassDashboard;
+export default AdminClassDashboard
