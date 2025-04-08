@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Clock, Users, CheckCircle, XCircle, Plus, Eye, RefreshCw, Copy, CheckCheck, AlertCircle } from "lucide-react"
+import { Clock, Users, CheckCircle, XCircle, Plus, Eye, RefreshCw, Copy, CheckCheck, AlertCircle, Bird } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -115,7 +115,10 @@ export default function TutorAttendancePage() {
 
         setIsLoading(true)
         try {
-            const response = await createAttendance(selectedClass, selectedCourse)
+            let body = { classSessionId: selectedCourse }
+            const response = await createAttendance(body)
+            console.log('reeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', body)
+
 
             toast({
                 title: "Success",
