@@ -37,6 +37,8 @@ export default function TutorAttendancePage() {
     const [copiedCode, setCopiedCode] = useState(null)
     const [classesWithAttendance, setClassesWithAttendance] = useState([])
 
+    console.log('rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr', activeAttendanceSessions)
+
     // Fetch classes on component mount
     useEffect(() => {
         fetchClasses()
@@ -63,6 +65,7 @@ export default function TutorAttendancePage() {
             const classesWithAttendancePromises = fetchedClasses.map(async (cls) => {
                 try {
                     const attendanceResponse = await getAttendanceDetails(cls._id)
+                    console.log('attendance sessionssssss', attendanceResponse)
                     return {
                         classId: cls._id,
                         hasAttendance: attendanceResponse.data && attendanceResponse.data.sessionId,
