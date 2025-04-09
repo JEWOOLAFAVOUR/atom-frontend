@@ -95,6 +95,10 @@ export const fetchTutorDashboard = async () => {
     return await makeApiRequest('GET', `/organization/users/dashboard/tutor`);
 };
 
+export const fetchStudentDashboard = async () => {
+    return await makeApiRequest('GET', `/organization/users/dashboard/student`);
+};
+
 // classes 
 export const createClass = async (data) => {
     return await makeApiRequest('POST', '/organization/classes/', data);
