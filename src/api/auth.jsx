@@ -159,7 +159,3 @@ export const fetchStudentClass = async () => {
 export const fetchPastAttendance = async () => {
     return await makeApiRequest('GET', `/organization/attendance/history`,);
 };
-
-
-
-
