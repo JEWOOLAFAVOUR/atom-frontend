@@ -135,13 +135,13 @@ export const signOutAttendance = async (data) => {
 ////
 
 export const getActiveAttendanceSessions = async () => {
-    return await makeApiRequest('POST', '/organization/attendance/active',);
+    return await makeApiRequest('GET', '/organization/attendance/active',);
 };
 
 export const getPastAttendanceSessions = async () => {
-    return await makeApiRequest('POST', '/organization/attendance/past',);
+    return await makeApiRequest('GET', '/organization/attendance/past',);
 };
 
-export const closeAttendanceSession = async (sessionId) => {
+export const closeAttendance = async (sessionId) => {
     return await makeApiRequest('POST', `/organization/attendance/close/${sessionId}`,);
 };
