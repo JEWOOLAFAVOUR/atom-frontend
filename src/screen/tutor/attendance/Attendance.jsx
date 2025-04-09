@@ -61,20 +61,26 @@ export default function TutorAttendancePage() {
             const fetchedClasses = response.data?.data || []
             setClasses(fetchedClasses)
 
+            console.log('testinggggggggggggggggggggggggggggggggggggggggggggg')
+
             // Check which classes have active attendance sessions
             const classesWithAttendancePromises = fetchedClasses.map(async (cls) => {
+                console.log(`Attempting to fetch attendance for class: ${cls._id}`);
                 try {
-                    const attendanceResponse = await getAttendanceDetails(cls._id)
-                    console.log('attendance sessionssssss', attendanceResponse)
+
+                    const attendanceResponse = await getAttendanceDetails(cls._id);
+                    console.log('attendance sessionssssss', attendanceResponse);
+                    console.log('🔴 ATTENDANCE RESPONSE FOR CLASS ' + cls._id + ':', attendanceResponse);
                     return {
                         classId: cls._id,
                         hasAttendance: attendanceResponse.data && attendanceResponse.data.sessionId,
                         sessionId: attendanceResponse.data?.sessionId,
-                    }
+                    };
                 } catch (error) {
-                    return { classId: cls._id, hasAttendance: false }
+                    console.error(`Error fetching attendance for class ${cls._id}:`, error);
+                    return { classId: cls._id, hasAttendance: false };
                 }
-            })
+            });
 
             const attendanceResults = await Promise.all(classesWithAttendancePromises)
             setClassesWithAttendance(attendanceResults)

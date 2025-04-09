@@ -120,8 +120,8 @@ export const createAttendance = async (data) => {
     return await makeApiRequest('POST', '/organization/attendance/', data);
 };
 
-export const getAttendanceDetails = async (attendanceId) => {
-    return await makeApiRequest('GET', `/organization/attendance/${attendanceId}`, data);
+export const getAttendanceDetails = async (classId) => {
+    return await makeApiRequest('GET', `/organization/attendance/${classId}`);
 };
 
 export const signInAttendance = async (data) => {
