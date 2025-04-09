@@ -149,3 +149,17 @@ export const getPastAttendanceSessions = async () => {
 export const closeAttendance = async (sessionId) => {
     return await makeApiRequest('POST', `/organization/attendance/close/${sessionId}`,);
 };
+
+// marking attendance
+
+export const fetchStudentClass = async () => {
+    return await makeApiRequest('GET', `/organization/classes/student`,);
+};
+
+export const fetchPastAttendance = async () => {
+    return await makeApiRequest('GET', `/organization/attendance/history`,);
+};
+
+
+
+
