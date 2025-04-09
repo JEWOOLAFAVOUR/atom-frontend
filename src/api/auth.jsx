@@ -129,7 +129,7 @@ export const getAttendanceDetails = async (classId) => {
 };
 
 export const signInAttendance = async (data) => {
-    return await makeApiRequest('POST', '/organization/attendance/siginin', data);
+    return await makeApiRequest('POST', '/organization/attendance/signin', data);
 };
 
 

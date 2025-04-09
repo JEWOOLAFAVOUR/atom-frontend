@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { fetchStudentClass, fetchPastAttendance, signInAttendance, signOutAttendance } from "../../../api/auth"; // Adjust path as needed
+import { sendToast } from "../../../components/utilis"
 
 const AttendancePage = () => {
     const [currentDate] = useState(new Date())
@@ -156,28 +157,28 @@ const AttendancePage = () => {
 
         setIsLoading(true)
         try {
+            console.log('ssssssssssssssssssssssss', attendanceCode)
             const response = await signInAttendance({
                 signInCode: attendanceCode,
                 classId: classId
             })
 
-            if (response.success) {
+            if (response?.data?.success) {
                 setCodeSubmitted(true)
-                setSuccessMessage("Successfully signed in to class!")
-                setShowSuccess(true)
+                sendToast("success", "Successfully signed in to class!")
 
                 // Refresh class data
                 const classesResponse = await fetchStudentClass()
-                if (classesResponse.success) {
-                    setClasses(processClassesData(classesResponse.data))
+                if (classesResponse?.data?.success) {
+                    setClasses(processClassesData(classesResponse?.data?.data))
                 }
 
                 // Reset after showing success message
                 setTimeout(() => {
-                    setShowSuccess(false)
+                    // setShowSuccess(false)
                 }, 3000)
             } else {
-                setError(response.message || "Failed to sign in")
+                sendToast("error", response?.data.message || "Failed to sign in")
             }
         } catch (err) {
             setError("An error occurred while signing in")
@@ -199,20 +200,19 @@ const AttendancePage = () => {
                 classId: classId
             })
 
-            if (response.success) {
-                setSuccessMessage("Successfully signed out of class!")
-                setShowSuccess(true)
+            if (response?.data?.success) {
+                sendToast("success", "Successfully signed out of class!")
 
                 // Refresh class data
                 const classesResponse = await fetchStudentClass()
                 if (classesResponse.success) {
-                    setClasses(processClassesData(classesResponse.data))
+                    setClasses(processClassesData(classesResponse?.data.data))
                 }
 
                 // Refresh attendance history
                 const historyResponse = await fetchPastAttendance()
-                if (historyResponse.success) {
-                    setAttendanceHistory(historyResponse.history)
+                if (historyResponse?.data?.success) {
+                    setAttendanceHistory(historyResponse?.data?.history)
                 }
 
                 // Reset after showing success message
@@ -220,7 +220,7 @@ const AttendancePage = () => {
                     setShowSuccess(false)
                 }, 3000)
             } else {
-                setError(response.message || "Failed to sign out")
+                sendToast("error", response?.data?.message || "Failed to sign out")
             }
         } catch (err) {
             setError("An error occurred while signing out")
@@ -257,26 +257,6 @@ const AttendancePage = () => {
                 </TabsList>
 
                 <TabsContent value="mark-attendance" className="mt-4 space-y-4">
-                    {showSuccess && (
-                        <Alert className="bg-green-50 border-green-200">
-                            <Check className="h-4 w-4 text-green-600" />
-                            <AlertTitle className="text-green-800">Success!</AlertTitle>
-                            <AlertDescription className="text-green-700">
-                                {successMessage}
-                            </AlertDescription>
-                        </Alert>
-                    )}
-
-                    {error && (
-                        <Alert variant="destructive">
-                            <AlertTriangle className="h-4 w-4" />
-                            <AlertTitle>Error</AlertTitle>
-                            <AlertDescription>
-                                {error}
-                            </AlertDescription>
-                        </Alert>
-                    )}
-
                     <Card>
                         <CardHeader>
                             <CardTitle>Today's Classes</CardTitle>
