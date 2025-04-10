@@ -242,7 +242,11 @@ const AdminDashboard = () => {
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-center p-4 text-muted-foreground">No upcoming classes found.</div>
+                                <div className="text-center p-8 bg-gray-50 dark:bg-gray-900 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                                    <BookMarked className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                                    <p className="text-gray-500 dark:text-gray-400">No upcoming classes found.</p>
+                                    <Button variant="link" className="text-primary mt-2">Schedule a class</Button>
+                                </div>
                             )}
                         </div>
                     </CardContent>
