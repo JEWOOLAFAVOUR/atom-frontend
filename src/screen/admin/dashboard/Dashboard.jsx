@@ -11,6 +11,7 @@ import {
     User,
     BookMarked,
     CalendarDays,
+    Clock,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
@@ -53,30 +54,62 @@ const AdminDashboard = () => {
     }, [])
 
     // Format date and time for class display
-    const formatDateTime = (dateString) => {
-        const date = new Date(dateString)
-        const today = new Date()
-        const tomorrow = new Date(today)
-        tomorrow.setDate(tomorrow.getDate() + 1)
+    // const formatDateTime = (dateString) => {
+    //     const date = new Date(dateString)
+    //     const today = new Date()
+    //     const tomorrow = new Date(today)
+    //     tomorrow.setDate(tomorrow.getDate() + 1)
 
-        // Check if the date is today or tomorrow
-        let dayLabel = ""
-        if (date.toDateString() === today.toDateString()) {
-            dayLabel = "Today"
-        } else if (date.toDateString() === tomorrow.toDateString()) {
-            dayLabel = "Tomorrow"
-        } else {
-            // Format as day of week
-            const options = { weekday: 'long' }
-            dayLabel = new Intl.DateTimeFormat('en-US', options).format(date)
-        }
+    //     // Check if the date is today or tomorrow
+    //     let dayLabel = ""
+    //     if (date.toDateString() === today.toDateString()) {
+    //         dayLabel = "Today"
+    //     } else if (date.toDateString() === tomorrow.toDateString()) {
+    //         dayLabel = "Tomorrow"
+    //     } else {
+    //         // Format as day of week
+    //         const options = { weekday: 'long' }
+    //         dayLabel = new Intl.DateTimeFormat('en-US', options).format(date)
+    //     }
 
-        // Format time
-        const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true }
-        const timeString = new Intl.DateTimeFormat('en-US', timeOptions).format(date)
+    //     // Format time
+    //     const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true }
+    //     const timeString = new Intl.DateTimeFormat('en-US', timeOptions).format(date)
 
-        return `${dayLabel}, ${timeString}`
-    }
+    //     return `${dayLabel}, ${timeString}`
+    // }
+
+    const formatDateTime = (dateTimeString) => {
+        const date = new Date(dateTimeString);
+        return new Intl.DateTimeFormat('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        }).format(date);
+    };
+
+    // Format time only helper function
+    const formatTimeOnly = (dateTimeString) => {
+        const date = new Date(dateTimeString);
+        return new Intl.DateTimeFormat('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        }).format(date);
+    };
+
+    // Calculate duration helper function
+    const getDuration = (startTime, endTime) => {
+        const start = new Date(startTime);
+        const end = new Date(endTime);
+        const durationMs = end - start;
+        const hours = Math.floor(durationMs / (1000 * 60 * 60));
+        const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+
+        return `${hours > 0 ? `${hours}h ` : ''}${minutes > 0 ? `${minutes}m` : ''}`;
+    };
 
     const [searchQuery, setSearchQuery] = useState("")
 
@@ -169,21 +202,43 @@ const AdminDashboard = () => {
                                 <div className="text-center p-4">Loading upcoming classes...</div>
                             ) : dashboardData.latest4Classes && dashboardData.latest4Classes.length > 0 ? (
                                 dashboardData.latest4Classes.map((cls, index) => (
-                                    <div key={index} className="flex items-center p-3 rounded-lg bg-accent/50">
-                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
-                                            <BookMarked className="h-5 w-5 text-primary" />
+                                    <div
+                                        key={index}
+                                        className="flex items-start p-4 rounded-xl bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                                    >
+                                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mr-4 flex-shrink-0">
+                                            <BookMarked className="h-6 w-6 text-primary" />
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="font-medium">{cls.topic}</h3>
-                                            <div className="text-sm text-muted-foreground flex items-center mt-1">
-                                                <User className="h-3 w-3 mr-1" />
-                                                <span>{cls.tutorName}</span>
-                                                <span className="mx-2">•</span>
-                                                <CalendarDays className="h-3 w-3 mr-1" />
-                                                <span>{formatDateTime(cls.startTime)}</span>
+                                            <h3 className="font-medium text-base">{cls.topic}</h3>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{cls.courseName}</p>
+
+                                            <div className="flex flex-wrap gap-y-2 mt-3">
+                                                <div className="flex items-center mr-4 text-xs text-gray-600 dark:text-gray-300">
+                                                    <User className="h-3 w-3 mr-1 flex-shrink-0" />
+                                                    <span>{cls.tutorName}</span>
+                                                </div>
+
+                                                <div className="flex items-center mr-4 text-xs text-gray-600 dark:text-gray-300">
+                                                    <CalendarDays className="h-3 w-3 mr-1 flex-shrink-0" />
+                                                    <span>{formatDateTime(cls.startTime)}</span>
+                                                </div>
+
+                                                <div className="flex items-center text-xs text-gray-600 dark:text-gray-300">
+                                                    <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                                                    <span>
+                                                        {formatTimeOnly(cls.startTime)} - {formatTimeOnly(cls.endTime)}
+                                                        <span className="ml-1 text-primary font-medium">({getDuration(cls.startTime, cls.endTime)})</span>
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <Badge variant="secondary">{cls.studentCount} Students</Badge>
+                                        <Badge
+                                            variant={cls.status === "current" ? "default" : "secondary"}
+                                            className="ml-2 self-start mt-1"
+                                        >
+                                            {cls.studentCount} {cls.studentCount === 1 ? 'Student' : 'Students'}
+                                        </Badge>
                                     </div>
                                 ))
                             ) : (
