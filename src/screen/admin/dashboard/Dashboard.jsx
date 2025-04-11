@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import {
     BarChart3,
@@ -52,32 +50,6 @@ const AdminDashboard = () => {
 
         getDashboardData()
     }, [])
-
-    // Format date and time for class display
-    // const formatDateTime = (dateString) => {
-    //     const date = new Date(dateString)
-    //     const today = new Date()
-    //     const tomorrow = new Date(today)
-    //     tomorrow.setDate(tomorrow.getDate() + 1)
-
-    //     // Check if the date is today or tomorrow
-    //     let dayLabel = ""
-    //     if (date.toDateString() === today.toDateString()) {
-    //         dayLabel = "Today"
-    //     } else if (date.toDateString() === tomorrow.toDateString()) {
-    //         dayLabel = "Tomorrow"
-    //     } else {
-    //         // Format as day of week
-    //         const options = { weekday: 'long' }
-    //         dayLabel = new Intl.DateTimeFormat('en-US', options).format(date)
-    //     }
-
-    //     // Format time
-    //     const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true }
-    //     const timeString = new Intl.DateTimeFormat('en-US', timeOptions).format(date)
-
-    //     return `${dayLabel}, ${timeString}`
-    // }
 
     const formatDateTime = (dateTimeString) => {
         const date = new Date(dateTimeString);

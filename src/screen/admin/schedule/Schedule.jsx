@@ -161,24 +161,24 @@ const AdminClassDashboard = () => {
     }, [currentPage, searchTerm, selectedStatus])
 
     // Function to handle student selection
-    const handleStudentSelection = (studentId) => {
-        // Check if already selected
-        if (selectedStudents.includes(studentId)) {
-            // If already selected, remove it
-            setSelectedStudents(selectedStudents.filter((id) => id !== studentId))
-        } else {
-            // If not selected, add it
-            setSelectedStudents([...selectedStudents, studentId])
-        }
-    }
+    // const handleStudentSelection = (studentId) => {
+    //     // Check if already selected
+    //     if (selectedStudents.includes(studentId)) {
+    //         // If already selected, remove it
+    //         setSelectedStudents(selectedStudents.filter((id) => id !== studentId))
+    //     } else {
+    //         // If not selected, add it
+    //         setSelectedStudents([...selectedStudents, studentId])
+    //     }
+    // }
 
-    // Update formData whenever selectedStudents changes
-    useEffect(() => {
-        setFormData((prev) => ({
-            ...prev,
-            students: selectedStudents,
-        }))
-    }, [selectedStudents])
+    // // Update formData whenever selectedStudents changes
+    // useEffect(() => {
+    //     setFormData((prev) => ({
+    //         ...prev,
+    //         students: selectedStudents,
+    //     }))
+    // }, [selectedStudents])
 
     // Handle form submission for create/edit
     const handleSubmit = async (e) => {
@@ -381,7 +381,7 @@ const AdminClassDashboard = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-2">
+                {/* <div className="grid grid-cols-1 gap-2">
                     <Label htmlFor={`${isEdit ? "edit-" : ""}students`}>Students</Label>
                     <div className="border rounded-md p-2 max-h-40 overflow-y-auto">
                         <div className="mb-2">
@@ -404,7 +404,7 @@ const AdminClassDashboard = () => {
                         ))}
                         {studentsList.length === 0 && <p className="text-sm text-muted-foreground py-2">No students available</p>}
                     </div>
-                </div>
+                </div> */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="grid grid-cols-1 gap-2">
                         <Label htmlFor={`${isEdit ? "edit-" : ""}startTime`}>Start Time</Label>
