@@ -33,13 +33,14 @@ import { Label } from "../../../components/ui/label"
 import { Textarea } from "../../../components/ui/textarea"
 import { sendToast } from "../../../components/utilis"
 import useAuthStore from "../../../store/useAuthStore"
-import { getCategories, createCategories, editCategories } from "../../../api/auth"
+import { getCategories, createCategories, editCategories, getCourses } from "../../../api/auth"
 import { getUsers } from "../../../api/auth"
 import { Checkbox } from "../../../components/ui/checkbox"
 import { ScrollArea } from "../../../components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
 import { Avatar } from "../../../components/ui/avatar"
 import { AvatarFallback, AvatarImage } from "../../../components/ui/avatar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select"
 
 const AdminCategory = () => {
     const { user } = useAuthStore()
@@ -61,11 +62,14 @@ const AdminCategory = () => {
     const [studentsSearchTimeout, setStudentsSearchTimeout] = useState(null)
     const [tutorsSearchTimeout, setTutorsSearchTimeout] = useState(null)
     const [selectedCategory, setSelectedCategory] = useState(null)
+    const [courses, setCourses] = useState([])
+
     const [formData, setFormData] = useState({
         name: "",
         description: "",
         students: [],
         tutors: [],
+        course: "",
         organization: "",
     })
     const [errors, setErrors] = useState({})
@@ -104,6 +108,7 @@ const AdminCategory = () => {
     useEffect(() => {
         if (isAddModalOpen || isEditModalOpen) {
             fetchStudents()
+            fetchCourses()
             fetchTutors()
         }
     }, [isAddModalOpen, isEditModalOpen])
@@ -190,6 +195,23 @@ const AdminCategory = () => {
         }
     }
 
+    const fetchCourses = async () => {
+        try {
+            const params = new URLSearchParams()
+            if (user?.organization?._id) params.append("organization", user.organization._id)
+
+            const response = await getCourses(params.toString())
+
+            if (response.data?.success) {
+                setCourses(response.data.data || [])
+            } else {
+                sendToast("error", response?.data?.message || "Failed to fetch courses")
+            }
+        } catch (error) {
+            console.error("Error fetching courses:", error)
+            sendToast("error", "Failed to fetch courses")
+        }
+    }
     // Fetch students
     const fetchStudents = async (page = studentsPagination.currentPage) => {
         setIsStudentsLoading(true)
@@ -463,6 +485,7 @@ const AdminCategory = () => {
             currentPage: newPage
         }))
         fetchStudents(newPage)
+        fetchCourses(newPage)
     }
 
     // Handle pagination for tutors
@@ -679,6 +702,27 @@ const AdminCategory = () => {
                                     placeholder="Brief description of the category"
                                     rows={3}
                                 />
+                            </div>
+
+                            <div className={`grid grid-cols-1 gap-2 ${""}`}>
+                                {/* <Label htmlFor{}>Course</Label> */}
+                                <Label htmlFor="description">Course</Label>
+                                <Select
+                                    value={formData.course}
+                                    onValueChange={(value) => setFormData({ ...formData, course: value })}
+                                    required
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Course" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {courses.map((course) => (
+                                            <SelectItem key={course?._id} value={course?._id}>
+                                                {course?.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <Tabs defaultValue="students" className="w-full">
