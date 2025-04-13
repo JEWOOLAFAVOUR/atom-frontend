@@ -704,8 +704,7 @@ const AdminCategory = () => {
                                 />
                             </div>
 
-                            <div className={`grid grid-cols-1 gap-2 ${""}`}>
-                                {/* <Label htmlFor{}>Course</Label> */}
+                            <div className={`grid grid-cols-1 gap-2`}>
                                 <Label htmlFor="description">Course</Label>
                                 <Select
                                     value={formData.course}
@@ -941,6 +940,26 @@ const AdminCategory = () => {
                                     onChange={handleChange}
                                     rows={3}
                                 />
+                            </div>
+
+                            <div className={`grid grid-cols-1 gap-2`}>
+                                <Label htmlFor="description">Course</Label>
+                                <Select
+                                    value={formData.course}
+                                    onValueChange={(value) => setFormData({ ...formData, course: value })}
+                                    required
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Course" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {courses.map((course) => (
+                                            <SelectItem key={course?._id} value={course?._id}>
+                                                {course?.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <Tabs defaultValue="students" className="w-full">

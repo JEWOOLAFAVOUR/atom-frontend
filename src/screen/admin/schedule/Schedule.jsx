@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import {
     CalendarIcon,
@@ -39,7 +41,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { getClass, updateClass, deleteClass, getCourses, getUsers, createClass } from "../../../api/auth"
+import { getClass, updateClass, deleteClass, getUsers, createClass, getCategories } from "../../../api/auth"
 import { sendToast } from "../../../components/utilis"
 import useAuthStore from "../../../store/useAuthStore"
 
@@ -58,16 +60,24 @@ const AdminClassDashboard = () => {
     const [selectedClass, setSelectedClass] = useState(null)
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
 
+    // 1. Add state for categories
+    const [categories, setCategories] = useState([])
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        totalPages: 1,
+        total: 0,
+    })
+    const [searchQuery, setSearchQuery] = useState("")
+
     // Check if user is admin
     const isAdmin = user?.role === "admin"
 
     // Form state for create/edit
-    let [formData, setFormData] = useState({
+    // 2. Update formData to replace tutor and course with category
+    const [formData, setFormData] = useState({
         topic: "",
         description: "",
-        tutor: isAdmin ? "" : user.id,
-        course: "",
-        students: [],
+        category: "", // Replace tutor and course with category
         startTime: "",
         endTime: "",
         organization: user?.organization?._id || "",
@@ -136,29 +146,43 @@ const AdminClassDashboard = () => {
         }
     }
 
-    const fetchCourses = async () => {
+    // 3. Add fetchCategories function
+    const fetchCategories = async (page = pagination.currentPage) => {
+        setIsLoading(true)
         try {
-            const params = new URLSearchParams()
-            if (user?.organization?._id) params.append("organization", user.organization._id)
+            // Build query parameters
+            const params = {}
+            if (page) params.page = page.toString()
+            if (user?.organization?._id) params.organization = user.organization._id
+            if (searchQuery) params.search = searchQuery
 
-            const response = await getCourses(params.toString())
+            // Make API request
+            const response = await getCategories(params)
 
             if (response.data?.success) {
-                setCourses(response.data.data || [])
+                setCategories(response.data.data)
+                setPagination({
+                    currentPage: response.data.currentPage || response.data.page,
+                    totalPages: response.data.totalPages,
+                    total: response.data.total || response.data.totalCount,
+                })
             } else {
-                sendToast("error", response?.data?.message || "Failed to fetch courses")
+                sendToast("error", response?.data?.message || "Failed to fetch categories")
             }
         } catch (error) {
-            console.error("Error fetching courses:", error)
-            sendToast("error", "Failed to fetch courses")
+            console.error("Error fetching categories:", error)
+            sendToast("error", "Failed to fetch categories")
+        } finally {
+            setIsLoading(false)
         }
     }
 
+    // 4. Update useEffect to fetch categories instead of courses
     useEffect(() => {
         fetchClasses()
-        fetchCourses()
+        fetchCategories() // Replace fetchCourses with fetchCategories
         fetchStudents()
-    }, [currentPage, searchTerm, selectedStatus])
+    }, [currentPage, searchTerm, selectedStatus, searchQuery])
 
     // Function to handle student selection
     // const handleStudentSelection = (studentId) => {
@@ -204,7 +228,7 @@ const AdminClassDashboard = () => {
                 // Create new class
                 console.log({ submitData })
                 const response = await createClass(submitData)
-                console.log('response from create class', response)
+                console.log("response from create class", response)
                 sendToast("success", "Class created successfully")
                 setCreateDialogOpen(false)
             }
@@ -234,14 +258,12 @@ const AdminClassDashboard = () => {
         }
     }
 
-    // Reset form data
+    // 5. Update resetForm to use category instead of tutor and course
     const resetForm = () => {
         setFormData({
             topic: "",
             description: "",
-            tutor: isAdmin ? "" : user?.id,
-            course: "",
-            students: [],
+            category: "", // Replace tutor and course with category
             startTime: "",
             endTime: "",
             organization: user?.organization?._id || "",
@@ -249,7 +271,7 @@ const AdminClassDashboard = () => {
         setSelectedStudents([])
     }
 
-    // Open edit dialog with class data
+    // 6. Update openEditDialog to use category instead of tutor and course
     const openEditDialog = (classData) => {
         setSelectedClass(classData)
 
@@ -264,9 +286,7 @@ const AdminClassDashboard = () => {
         setFormData({
             topic: classData.topic,
             description: classData.description,
-            tutor: classData.tutor._id || classData.tutor,
-            course: classData.course._id || classData.course,
-            students: studentIds,
+            category: classData.category?._id || classData.category, // Replace tutor and course with category
             startTime: startDateTime,
             endTime: endDateTime,
             organization: classData.organization || user?.organization?._id,
@@ -314,7 +334,7 @@ const AdminClassDashboard = () => {
         })
     }
 
-    // Function to render the class form (used for both create and edit)
+    // 7. Replace the tutor and course fields in the form with category field
     const renderClassForm = (isEdit = false) => (
         <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
@@ -338,73 +358,25 @@ const AdminClassDashboard = () => {
                         required
                     />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                    {isAdmin && (
-                        <div className="grid grid-cols-1 gap-2">
-                            <Label htmlFor={`${isEdit ? "edit-" : ""}tutor`}>Tutor</Label>
-                            <Select
-                                value={formData.tutor}
-                                onValueChange={(value) => setFormData({ ...formData, tutor: value })}
-                                required
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select Tutor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {tutors.map((tutor) => (
-                                        <SelectItem key={tutor?._id} value={tutor?._id}>
-                                            {`${tutor.firstname} ${tutor.lastname}`}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-                    <div className={`grid grid-cols-1 gap-2 ${isAdmin ? "" : "col-span-2"}`}>
-                        <Label htmlFor={`${isEdit ? "edit-" : ""}course`}>Course</Label>
-                        <Select
-                            value={formData.course}
-                            onValueChange={(value) => setFormData({ ...formData, course: value })}
-                            required
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select Course" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {courses.map((course) => (
-                                    <SelectItem key={course?._id} value={course?._id}>
-                                        {course?.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                <div className="grid grid-cols-1 gap-2">
+                    <Label htmlFor={`${isEdit ? "edit-" : ""}category`}>Category</Label>
+                    <Select
+                        value={formData.category}
+                        onValueChange={(value) => setFormData({ ...formData, category: value })}
+                        required
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {categories.map((category) => (
+                                <SelectItem key={category?._id} value={category?._id}>
+                                    {category?.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
-
-                {/* <div className="grid grid-cols-1 gap-2">
-                    <Label htmlFor={`${isEdit ? "edit-" : ""}students`}>Students</Label>
-                    <div className="border rounded-md p-2 max-h-40 overflow-y-auto">
-                        <div className="mb-2">
-                            <p className="text-sm text-muted-foreground">
-                                Select multiple students (currently selected: {selectedStudents.length})
-                            </p>
-                        </div>
-                        {studentsList.map((student) => (
-                            <div key={student?._id} className="flex items-center space-x-2 py-1">
-                                <input
-                                    type="checkbox"
-                                    id={`student-${student._id}`}
-                                    checked={selectedStudents.includes(student._id)}
-                                    onChange={() => handleStudentSelection(student._id)}
-                                />
-                                <label htmlFor={`student-${student._id}`} className="text-sm">
-                                    {`${student.firstname} ${student.lastname}`}
-                                </label>
-                            </div>
-                        ))}
-                        {studentsList.length === 0 && <p className="text-sm text-muted-foreground py-2">No students available</p>}
-                    </div>
-                </div> */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="grid grid-cols-1 gap-2">
                         <Label htmlFor={`${isEdit ? "edit-" : ""}startTime`}>Start Time</Label>
@@ -527,7 +499,9 @@ const AdminClassDashboard = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div>
+                                {/* 9. Update the class details dialog to show category instead of tutor and course */}
+                                {/* In the class details dialog, replace: */}
+                                {/* <div>
                                     <h4 className="text-sm font-medium mb-1">Tutor</h4>
                                     <div className="flex items-center gap-2">
                                         <User className="h-4 w-4 text-muted-foreground" />
@@ -543,6 +517,15 @@ const AdminClassDashboard = () => {
                                     <div className="flex items-center gap-2">
                                         <Info className="h-4 w-4 text-muted-foreground" />
                                         <span className="text-sm">{selectedClass.course?.name || "Not specified"}</span>
+                                    </div>
+                                </div> */}
+
+                                {/* With: */}
+                                <div>
+                                    <h4 className="text-sm font-medium mb-1">Category</h4>
+                                    <div className="flex items-center gap-2">
+                                        <Info className="h-4 w-4 text-muted-foreground" />
+                                        <span className="text-sm">{selectedClass.category?.name || "Not specified"}</span>
                                     </div>
                                 </div>
                                 <div>
@@ -682,6 +665,18 @@ const AdminClassDashboard = () => {
                                                             </DropdownMenu>
                                                         </div>
                                                     </div>
+                                                    {/* 8. Update the class card display to show category instead of tutor and course */}
+                                                    {/* In the class card display, replace: */}
+                                                    {/* <div className="flex items-center gap-2 text-sm">
+                                                        <User className="h-4 w-4 text-muted-foreground" />
+                                                        <span>
+                                                            {cls.tutor?.firstname && cls.tutor?.lastname
+                                                                ? `${cls.tutor.firstname} ${cls.tutor.lastname}`
+                                                                : "Not specified"}
+                                                        </span>
+                                                    </div> */}
+
+                                                    {/* With: */}
                                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-2 gap-x-4 mt-4">
                                                         <div className="flex items-center gap-2 text-sm">
                                                             <Clock className="h-4 w-4 text-muted-foreground" />
@@ -690,12 +685,8 @@ const AdminClassDashboard = () => {
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-2 text-sm">
-                                                            <User className="h-4 w-4 text-muted-foreground" />
-                                                            <span>
-                                                                {cls.tutor?.firstname && cls.tutor?.lastname
-                                                                    ? `${cls.tutor.firstname} ${cls.tutor.lastname}`
-                                                                    : "Not specified"}
-                                                            </span>
+                                                            <Info className="h-4 w-4 text-muted-foreground" />
+                                                            <span>{cls.category?.name || "Not specified"}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2 text-sm">
                                                             <Info className="h-4 w-4 text-muted-foreground" />
