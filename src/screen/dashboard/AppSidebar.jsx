@@ -81,6 +81,7 @@ const AppSidebar = ({ children }) => {
                     { icon: Users, label: "Students", path: "/dashboard/students" },
                     { icon: GraduationCap, label: "Tutors", path: "/dashboard/tutors" },
                     { icon: BookOpen, label: "Courses", path: "/dashboard/courses" },
+                    { icon: BookOpen, label: "Categories", path: "/dashboard/categories" },
                     { icon: Calendar, label: "Class Schedule", path: "/dashboard/schedule" },
                     { icon: Settings, label: "Settings", path: "/dashboard/settings" },
                 ]

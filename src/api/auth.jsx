@@ -159,3 +159,18 @@ export const fetchStudentClass = async () => {
 export const fetchPastAttendance = async () => {
     return await makeApiRequest('GET', `/organization/attendance/history`,);
 };
+
+
+export const getCategories = async (params = {}) => {
+    const queryString = buildQueryString(params);
+    const endpoint = `/organization/categories/${queryString ? `?${queryString}` : ''}`;
+    return await makeApiRequest('GET', endpoint);
+};
+
+export const createCategories = async (data) => {
+    return await makeApiRequest('POST', `/organization/categories`, data);
+};
+
+export const editCategories = async (data, categoryId) => {
+    return await makeApiRequest('PUT', `/organization/categories/${categoryId}`, data);
+};
