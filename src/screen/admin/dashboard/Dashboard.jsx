@@ -101,10 +101,6 @@ const AdminDashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{isLoading ? "..." : dashboardData.totalStudents}</div>
-                        <div className="flex items-center mt-1">
-                            <span className="text-xs text-green-600 dark:text-green-400 font-medium">+12</span>
-                            <span className="text-xs text-muted-foreground ml-1">from last month</span>
-                        </div>
                     </CardContent>
                 </Card>
 
@@ -117,10 +113,6 @@ const AdminDashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{isLoading ? "..." : dashboardData.totalTutors}</div>
-                        <div className="flex items-center mt-1">
-                            <span className="text-xs text-green-600 dark:text-green-400 font-medium">+2</span>
-                            <span className="text-xs text-muted-foreground ml-1">from last month</span>
-                        </div>
                     </CardContent>
                 </Card>
 
@@ -133,10 +125,6 @@ const AdminDashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{isLoading ? "..." : dashboardData.totalCourses}</div>
-                        <div className="flex items-center mt-1">
-                            <span className="text-xs text-green-600 dark:text-green-400 font-medium">+1</span>
-                            <span className="text-xs text-muted-foreground ml-1">from last month</span>
-                        </div>
                     </CardContent>
                 </Card>
 
@@ -149,10 +137,6 @@ const AdminDashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{isLoading ? "..." : dashboardData.totalActiveClasses}</div>
-                        <div className="flex items-center mt-1">
-                            <span className="text-xs text-green-600 dark:text-green-400 font-medium">+4</span>
-                            <span className="text-xs text-muted-foreground ml-1">from last week</span>
-                        </div>
                     </CardContent>
                 </Card>
             </div>
