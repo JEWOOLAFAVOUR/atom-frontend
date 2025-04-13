@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import {
     Search,
@@ -76,25 +78,25 @@ const AdminCategory = () => {
     const [pagination, setPagination] = useState({
         currentPage: 1,
         totalPages: 1,
-        total: 0
+        total: 0,
     })
     const [studentsPagination, setStudentsPagination] = useState({
         currentPage: 1,
         totalPages: 1,
-        total: 0
+        total: 0,
     })
     const [tutorsPagination, setTutorsPagination] = useState({
         currentPage: 1,
         totalPages: 1,
-        total: 0
+        total: 0,
     })
 
     // Initialize organization ID from authenticated user
     useEffect(() => {
         if (user?.organization?._id) {
-            setFormData(prev => ({
+            setFormData((prev) => ({
                 ...prev,
-                organization: user.organization._id
+                organization: user.organization._id,
             }))
         }
     }, [user])
@@ -182,7 +184,7 @@ const AdminCategory = () => {
                 setPagination({
                     currentPage: response.data.currentPage || response.data.page,
                     totalPages: response.data.totalPages,
-                    total: response.data.total || response.data.totalCount
+                    total: response.data.total || response.data.totalCount,
                 })
             } else {
                 sendToast("error", response?.data?.message || "Failed to fetch categories")
@@ -299,6 +301,7 @@ const AdminCategory = () => {
             description: "",
             students: [],
             tutors: [],
+            course: "",
             organization: user?.organization?._id || "",
         })
         setErrors({})
@@ -393,8 +396,9 @@ const AdminCategory = () => {
         setFormData({
             name: category.name,
             description: category.description || "",
-            students: category.students?.map(student => student._id || student) || [],
-            tutors: category.tutors?.map(tutor => tutor._id || tutor) || [],
+            students: category.students?.map((student) => student._id || student) || [],
+            tutors: category.tutors?.map((tutor) => tutor._id || tutor) || [],
+            course: category.course?._id || category.course || "",
             organization: category.organization || user?.organization?._id || "",
         })
         setIsEditModalOpen(true)
@@ -417,7 +421,7 @@ const AdminCategory = () => {
 
     // Handle student selection
     const handleStudentSelection = (studentId) => {
-        setFormData(prev => {
+        setFormData((prev) => {
             const students = [...prev.students]
             const index = students.indexOf(studentId)
 
@@ -429,14 +433,14 @@ const AdminCategory = () => {
 
             return {
                 ...prev,
-                students
+                students,
             }
         })
     }
 
     // Handle tutor selection
     const handleTutorSelection = (tutorId) => {
-        setFormData(prev => {
+        setFormData((prev) => {
             const tutors = [...prev.tutors]
             const index = tutors.indexOf(tutorId)
 
@@ -448,7 +452,7 @@ const AdminCategory = () => {
 
             return {
                 ...prev,
-                tutors
+                tutors,
             }
         })
     }
@@ -471,18 +475,18 @@ const AdminCategory = () => {
     // Handle pagination for categories
     const handlePageChange = (newPage) => {
         if (newPage < 1 || newPage > pagination.totalPages) return
-        setPagination(prev => ({
+        setPagination((prev) => ({
             ...prev,
-            currentPage: newPage
+            currentPage: newPage,
         }))
     }
 
     // Handle pagination for students
     const handleStudentsPageChange = (newPage) => {
         if (newPage < 1 || newPage > studentsPagination.totalPages) return
-        setStudentsPagination(prev => ({
+        setStudentsPagination((prev) => ({
             ...prev,
-            currentPage: newPage
+            currentPage: newPage,
         }))
         fetchStudents(newPage)
         fetchCourses(newPage)
@@ -491,9 +495,9 @@ const AdminCategory = () => {
     // Handle pagination for tutors
     const handleTutorsPageChange = (newPage) => {
         if (newPage < 1 || newPage > tutorsPagination.totalPages) return
-        setTutorsPagination(prev => ({
+        setTutorsPagination((prev) => ({
             ...prev,
-            currentPage: newPage
+            currentPage: newPage,
         }))
         fetchTutors(newPage)
     }
@@ -503,7 +507,7 @@ const AdminCategory = () => {
         if (!name) return "N/A"
         return name
             .split(" ")
-            .map(part => part[0])
+            .map((part) => part[0])
             .join("")
             .toUpperCase()
             .substring(0, 2)
@@ -560,6 +564,7 @@ const AdminCategory = () => {
                                 <tr className="border-b bg-muted/50">
                                     <th className="p-3 text-left font-medium">Category Name</th>
                                     <th className="p-3 text-left font-medium hidden md:table-cell">Description</th>
+                                    <th className="p-3 text-left font-medium hidden md:table-cell">Course</th>
                                     <th className="p-3 text-left font-medium">Students</th>
                                     <th className="p-3 text-left font-medium">Tutors</th>
                                     <th className="p-3 text-left font-medium">Created</th>
@@ -588,10 +593,13 @@ const AdminCategory = () => {
                                             </td>
                                             <td className="p-3 text-muted-foreground hidden md:table-cell">
                                                 {category.description
-                                                    ? (category.description.length > 60
+                                                    ? category.description.length > 60
                                                         ? `${category.description.substring(0, 60)}...`
-                                                        : category.description)
+                                                        : category.description
                                                     : "No description available"}
+                                            </td>
+                                            <td className="p-3 text-muted-foreground hidden md:table-cell">
+                                                {category.course?.name || "No course assigned"}
                                             </td>
                                             <td className="p-3">
                                                 <div className="flex items-center">
@@ -605,9 +613,7 @@ const AdminCategory = () => {
                                                     <span>{category.tutors?.length || 0}</span>
                                                 </div>
                                             </td>
-                                            <td className="p-3">
-                                                {new Date(category.createdAt).toLocaleDateString()}
-                                            </td>
+                                            <td className="p-3">{new Date(category.createdAt).toLocaleDateString()}</td>
                                             <td className="p-3 text-right">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
@@ -644,8 +650,8 @@ const AdminCategory = () => {
                     {categories.length > 0 && (
                         <div className="flex items-center justify-between mt-4">
                             <div className="text-sm text-muted-foreground">
-                                Showing {((pagination.currentPage - 1) * 10) + 1} to {Math.min(pagination.currentPage * 10, pagination.total)}{" "}
-                                of {pagination.total} categories
+                                Showing {(pagination.currentPage - 1) * 10 + 1} to{" "}
+                                {Math.min(pagination.currentPage * 10, pagination.total)} of {pagination.total} categories
                             </div>
                             <div className="flex items-center gap-1">
                                 <Button
@@ -752,17 +758,24 @@ const AdminCategory = () => {
                                             ) : students.length > 0 ? (
                                                 <div className="p-4 space-y-2">
                                                     {students.map((student) => (
-                                                        <div key={student._id} className="flex items-center justify-between py-2 px-1 hover:bg-muted/50 rounded-md">
+                                                        <div
+                                                            key={student._id}
+                                                            className="flex items-center justify-between py-2 px-1 hover:bg-muted/50 rounded-md"
+                                                        >
                                                             <div className="flex items-center space-x-3">
                                                                 <Avatar className="h-8 w-8">
                                                                     {student.profilePicture ? (
-                                                                        <AvatarImage src={student.profilePicture} />
+                                                                        <AvatarImage src={student.profilePicture || "/placeholder.svg"} />
                                                                     ) : (
-                                                                        <AvatarFallback>{getInitials(student.fullName || student.firstname + " " + student.lastname)}</AvatarFallback>
+                                                                        <AvatarFallback>
+                                                                            {getInitials(student.fullName || student.firstname + " " + student.lastname)}
+                                                                        </AvatarFallback>
                                                                     )}
                                                                 </Avatar>
                                                                 <div>
-                                                                    <p className="text-sm font-medium">{student.fullName || `${student.firstname} ${student.lastname}`}</p>
+                                                                    <p className="text-sm font-medium">
+                                                                        {student.fullName || `${student.firstname} ${student.lastname}`}
+                                                                    </p>
                                                                     <p className="text-xs text-muted-foreground">{student.email}</p>
                                                                 </div>
                                                             </div>
@@ -774,9 +787,7 @@ const AdminCategory = () => {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <div className="p-4 text-center text-muted-foreground">
-                                                    No students found.
-                                                </div>
+                                                <div className="p-4 text-center text-muted-foreground">No students found.</div>
                                             )}
                                         </ScrollArea>
 
@@ -799,16 +810,16 @@ const AdminCategory = () => {
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => handleStudentsPageChange(studentsPagination.currentPage + 1)}
-                                                    disabled={studentsPagination.currentPage === studentsPagination.totalPages || isStudentsLoading}
+                                                    disabled={
+                                                        studentsPagination.currentPage === studentsPagination.totalPages || isStudentsLoading
+                                                    }
                                                 >
                                                     <ChevronRight className="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         )}
 
-                                        <div className="text-sm text-muted-foreground">
-                                            Selected: {formData.students.length} students
-                                        </div>
+                                        <div className="text-sm text-muted-foreground">Selected: {formData.students.length} students</div>
                                     </div>
                                 </TabsContent>
 
@@ -834,17 +845,24 @@ const AdminCategory = () => {
                                             ) : tutors.length > 0 ? (
                                                 <div className="p-4 space-y-2">
                                                     {tutors.map((tutor) => (
-                                                        <div key={tutor._id} className="flex items-center justify-between py-2 px-1 hover:bg-muted/50 rounded-md">
+                                                        <div
+                                                            key={tutor._id}
+                                                            className="flex items-center justify-between py-2 px-1 hover:bg-muted/50 rounded-md"
+                                                        >
                                                             <div className="flex items-center space-x-3">
                                                                 <Avatar className="h-8 w-8">
                                                                     {tutor.profilePicture ? (
-                                                                        <AvatarImage src={tutor.profilePicture} />
+                                                                        <AvatarImage src={tutor.profilePicture || "/placeholder.svg"} />
                                                                     ) : (
-                                                                        <AvatarFallback>{getInitials(tutor.fullName || tutor.firstname + " " + tutor.lastname)}</AvatarFallback>
+                                                                        <AvatarFallback>
+                                                                            {getInitials(tutor.fullName || tutor.firstname + " " + tutor.lastname)}
+                                                                        </AvatarFallback>
                                                                     )}
                                                                 </Avatar>
                                                                 <div>
-                                                                    <p className="text-sm font-medium">{tutor.fullName || `${tutor.firstname} ${tutor.lastname}`}</p>
+                                                                    <p className="text-sm font-medium">
+                                                                        {tutor.fullName || `${tutor.firstname} ${tutor.lastname}`}
+                                                                    </p>
                                                                     <p className="text-xs text-muted-foreground">{tutor.email}</p>
                                                                 </div>
                                                             </div>
@@ -859,9 +877,7 @@ const AdminCategory = () => {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <div className="p-4 text-center text-muted-foreground">
-                                                    No tutors found.
-                                                </div>
+                                                <div className="p-4 text-center text-muted-foreground">No tutors found.</div>
                                             )}
                                         </ScrollArea>
 
@@ -891,9 +907,7 @@ const AdminCategory = () => {
                                             </div>
                                         )}
 
-                                        <div className="text-sm text-muted-foreground">
-                                            Selected: {formData.tutors.length} tutors
-                                        </div>
+                                        <div className="text-sm text-muted-foreground">Selected: {formData.tutors.length} tutors</div>
                                     </div>
                                 </TabsContent>
                             </Tabs>
@@ -943,7 +957,7 @@ const AdminCategory = () => {
                             </div>
 
                             <div className={`grid grid-cols-1 gap-2`}>
-                                <Label htmlFor="description">Course</Label>
+                                <Label htmlFor="edit-course">Course</Label>
                                 <Select
                                     value={formData.course}
                                     onValueChange={(value) => setFormData({ ...formData, course: value })}
@@ -990,17 +1004,24 @@ const AdminCategory = () => {
                                             ) : students.length > 0 ? (
                                                 <div className="p-4 space-y-2">
                                                     {students.map((student) => (
-                                                        <div key={student._id} className="flex items-center justify-between py-2 px-1 hover:bg-muted/50 rounded-md">
+                                                        <div
+                                                            key={student._id}
+                                                            className="flex items-center justify-between py-2 px-1 hover:bg-muted/50 rounded-md"
+                                                        >
                                                             <div className="flex items-center space-x-3">
                                                                 <Avatar className="h-8 w-8">
                                                                     {student.profilePicture ? (
-                                                                        <AvatarImage src={student.profilePicture} />
+                                                                        <AvatarImage src={student.profilePicture || "/placeholder.svg"} />
                                                                     ) : (
-                                                                        <AvatarFallback>{getInitials(student.fullName || student.firstname + " " + student.lastname)}</AvatarFallback>
+                                                                        <AvatarFallback>
+                                                                            {getInitials(student.fullName || student.firstname + " " + student.lastname)}
+                                                                        </AvatarFallback>
                                                                     )}
                                                                 </Avatar>
                                                                 <div>
-                                                                    <p className="text-sm font-medium">{student.fullName || `${student.firstname} ${student.lastname}`}</p>
+                                                                    <p className="text-sm font-medium">
+                                                                        {student.fullName || `${student.firstname} ${student.lastname}`}
+                                                                    </p>
                                                                     <p className="text-xs text-muted-foreground">{student.email}</p>
                                                                 </div>
                                                             </div>
@@ -1012,9 +1033,7 @@ const AdminCategory = () => {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <div className="p-4 text-center text-muted-foreground">
-                                                    No students found.
-                                                </div>
+                                                <div className="p-4 text-center text-muted-foreground">No students found.</div>
                                             )}
                                         </ScrollArea>
 
@@ -1037,16 +1056,16 @@ const AdminCategory = () => {
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => handleStudentsPageChange(studentsPagination.currentPage + 1)}
-                                                    disabled={studentsPagination.currentPage === studentsPagination.totalPages || isStudentsLoading}
+                                                    disabled={
+                                                        studentsPagination.currentPage === studentsPagination.totalPages || isStudentsLoading
+                                                    }
                                                 >
                                                     <ChevronRight className="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         )}
 
-                                        <div className="text-sm text-muted-foreground">
-                                            Selected: {formData.students.length} students
-                                        </div>
+                                        <div className="text-sm text-muted-foreground">Selected: {formData.students.length} students</div>
                                     </div>
                                 </TabsContent>
 
@@ -1072,17 +1091,24 @@ const AdminCategory = () => {
                                             ) : tutors.length > 0 ? (
                                                 <div className="p-4 space-y-2">
                                                     {tutors.map((tutor) => (
-                                                        <div key={tutor._id} className="flex items-center justify-between py-2 px-1 hover:bg-muted/50 rounded-md">
+                                                        <div
+                                                            key={tutor._id}
+                                                            className="flex items-center justify-between py-2 px-1 hover:bg-muted/50 rounded-md"
+                                                        >
                                                             <div className="flex items-center space-x-3">
                                                                 <Avatar className="h-8 w-8">
                                                                     {tutor.profilePicture ? (
-                                                                        <AvatarImage src={tutor.profilePicture} />
+                                                                        <AvatarImage src={tutor.profilePicture || "/placeholder.svg"} />
                                                                     ) : (
-                                                                        <AvatarFallback>{getInitials(tutor.fullName || tutor.firstname + " " + tutor.lastname)}</AvatarFallback>
+                                                                        <AvatarFallback>
+                                                                            {getInitials(tutor.fullName || tutor.firstname + " " + tutor.lastname)}
+                                                                        </AvatarFallback>
                                                                     )}
                                                                 </Avatar>
                                                                 <div>
-                                                                    <p className="text-sm font-medium">{tutor.fullName || `${tutor.firstname} ${tutor.lastname}`}</p>
+                                                                    <p className="text-sm font-medium">
+                                                                        {tutor.fullName || `${tutor.firstname} ${tutor.lastname}`}
+                                                                    </p>
                                                                     <p className="text-xs text-muted-foreground">{tutor.email}</p>
                                                                 </div>
                                                             </div>
@@ -1094,9 +1120,7 @@ const AdminCategory = () => {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <div className="p-4 text-center text-muted-foreground">
-                                                    No tutors found.
-                                                </div>
+                                                <div className="p-4 text-center text-muted-foreground">No tutors found.</div>
                                             )}
                                         </ScrollArea>
 
@@ -1126,9 +1150,7 @@ const AdminCategory = () => {
                                             </div>
                                         )}
 
-                                        <div className="text-sm text-muted-foreground">
-                                            Selected: {formData.tutors.length} tutors
-                                        </div>
+                                        <div className="text-sm text-muted-foreground">Selected: {formData.tutors.length} tutors</div>
                                     </div>
                                 </TabsContent>
                             </Tabs>

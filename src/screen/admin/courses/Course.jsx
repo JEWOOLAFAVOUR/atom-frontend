@@ -37,6 +37,51 @@ import { sendToast } from "../../../components/utilis"
 import useAuthStore from "../../../store/useAuthStore"
 import { getCourses, createCourse, updateCourse, deleteCourse } from "../../../api/auth";
 
+
+// This is the component to use in your table row
+const CourseActionMenu = ({ course, onEdit, onDelete }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleEdit = () => {
+        setIsOpen(false); // Close dropdown after action
+        onEdit(course);
+    };
+
+    const handleDelete = () => {
+        setIsOpen(false); // Close dropdown after action
+        onDelete(course);
+    };
+
+    return (
+        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                    <MoreHorizontal className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleEdit}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDelete}>
+                    <Trash className="mr-2 h-4 w-4" />
+                    Delete
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+};
+
+// Usage in your table row:
+// <td className="p-3 text-right">
+//   <CourseActionMenu 
+//     course={course} 
+//     onEdit={openEditModal} 
+//     onDelete={openDeleteModal} 
+//   />
+// </td>
+
 const AdminCourse = () => {
     const { user } = useAuthStore()
 
@@ -361,7 +406,8 @@ const AdminCourse = () => {
                                                 {new Date(course.createdAt).toLocaleDateString()}
                                             </td>
                                             <td className="p-3 text-right">
-                                                <DropdownMenu>
+                                                <CourseActionMenu />
+                                                {/* <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button variant="ghost" size="icon">
                                                             <MoreHorizontal className="h-4 w-4" />
@@ -377,7 +423,7 @@ const AdminCourse = () => {
                                                             Delete
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
-                                                </DropdownMenu>
+                                                </DropdownMenu> */}
                                             </td>
                                         </tr>
                                     ))
