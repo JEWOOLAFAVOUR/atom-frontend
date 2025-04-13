@@ -715,11 +715,11 @@ const AdminCategory = () => {
                                                                     {student.profilePicture ? (
                                                                         <AvatarImage src={student.profilePicture} />
                                                                     ) : (
-                                                                        <AvatarFallback>{getInitials(student.fullName || student.firstName + " " + student.lastName)}</AvatarFallback>
+                                                                        <AvatarFallback>{getInitials(student.fullName || student.firstname + " " + student.lastname)}</AvatarFallback>
                                                                     )}
                                                                 </Avatar>
                                                                 <div>
-                                                                    <p className="text-sm font-medium">{student.fullName || `${student.firstName} ${student.lastName}`}</p>
+                                                                    <p className="text-sm font-medium">{student.fullName || `${student.firstname} ${student.lastname}`}</p>
                                                                     <p className="text-xs text-muted-foreground">{student.email}</p>
                                                                 </div>
                                                             </div>
@@ -797,11 +797,11 @@ const AdminCategory = () => {
                                                                     {tutor.profilePicture ? (
                                                                         <AvatarImage src={tutor.profilePicture} />
                                                                     ) : (
-                                                                        <AvatarFallback>{getInitials(tutor.fullName || tutor.firstName + " " + tutor.lastName)}</AvatarFallback>
+                                                                        <AvatarFallback>{getInitials(tutor.fullName || tutor.firstname + " " + tutor.lastname)}</AvatarFallback>
                                                                     )}
                                                                 </Avatar>
                                                                 <div>
-                                                                    <p className="text-sm font-medium">{tutor.fullName || `${tutor.firstName} ${tutor.lastName}`}</p>
+                                                                    <p className="text-sm font-medium">{tutor.fullName || `${tutor.firstname} ${tutor.lastname}`}</p>
                                                                     <p className="text-xs text-muted-foreground">{tutor.email}</p>
                                                                 </div>
                                                             </div>
@@ -933,11 +933,11 @@ const AdminCategory = () => {
                                                                     {student.profilePicture ? (
                                                                         <AvatarImage src={student.profilePicture} />
                                                                     ) : (
-                                                                        <AvatarFallback>{getInitials(student.fullName || student.firstName + " " + student.lastName)}</AvatarFallback>
+                                                                        <AvatarFallback>{getInitials(student.fullName || student.firstname + " " + student.lastname)}</AvatarFallback>
                                                                     )}
                                                                 </Avatar>
                                                                 <div>
-                                                                    <p className="text-sm font-medium">{student.fullName || `${student.firstName} ${student.lastName}`}</p>
+                                                                    <p className="text-sm font-medium">{student.fullName || `${student.firstname} ${student.lastname}`}</p>
                                                                     <p className="text-xs text-muted-foreground">{student.email}</p>
                                                                 </div>
                                                             </div>
@@ -1015,11 +1015,11 @@ const AdminCategory = () => {
                                                                     {tutor.profilePicture ? (
                                                                         <AvatarImage src={tutor.profilePicture} />
                                                                     ) : (
-                                                                        <AvatarFallback>{getInitials(tutor.fullName || tutor.firstName + " " + tutor.lastName)}</AvatarFallback>
+                                                                        <AvatarFallback>{getInitials(tutor.fullName || tutor.firstname + " " + tutor.lastname)}</AvatarFallback>
                                                                     )}
                                                                 </Avatar>
                                                                 <div>
-                                                                    <p className="text-sm font-medium">{tutor.fullName || `${tutor.firstName} ${tutor.lastName}`}</p>
+                                                                    <p className="text-sm font-medium">{tutor.fullName || `${tutor.firstname} ${tutor.lastname}`}</p>
                                                                     <p className="text-xs text-muted-foreground">{tutor.email}</p>
                                                                 </div>
                                                             </div>
