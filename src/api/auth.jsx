@@ -175,6 +175,6 @@ export const editCategories = async (data, categoryId) => {
     return await makeApiRequest('PUT', `/organization/categories/${categoryId}`, data);
 };
 
-export const generateCode = async (data) => {
-    return await makeApiRequest('GET', `/organization/attendance/generate-code`, data);
+export const generateCode = async (sessionId) => {
+    return await makeApiRequest('POST', `/organization/attendance/generate-code/${sessionId}`,);
 };
