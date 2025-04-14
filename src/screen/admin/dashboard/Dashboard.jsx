@@ -145,7 +145,7 @@ const AdminDashboard = () => {
                 <Card className="shadow-sm col-span-1 lg:col-span-2">
                     <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                            <CardTitle>Upcoming Classes</CardTitle>
+                            <CardTitle>Active Classes</CardTitle>
                             <Button variant="ghost" size="sm" className="gap-1">
                                 View All
                                 <ChevronDown className="h-4 w-4" />
