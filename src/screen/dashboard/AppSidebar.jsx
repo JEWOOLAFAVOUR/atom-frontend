@@ -99,9 +99,9 @@ const AppSidebar = ({ children }) => {
                 return [
                     { icon: Home, label: "Dashboard", path: "/dashboard" },
                     { icon: Calendar, label: "Class Schedule", path: "/dashboard/schedule" },
+                    { icon: BarChart3, label: "Attendance", path: "/dashboard/attendance" },
                     { icon: ClipboardList, label: "Assignments", path: "/dashboard/assignments" },
                     { icon: BookOpen, label: "Curriculum", path: "/dashboard/curriculum" },
-                    { icon: BarChart3, label: "Attendance", path: "/dashboard/attendance" },
                 ]
         }
     }
