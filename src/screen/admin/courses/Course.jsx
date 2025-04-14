@@ -15,12 +15,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
 import { Button } from "../../../components/ui/button"
 import { Input } from "../../../components/ui/input"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "../../../components/ui/dropdown-menu"
+
 import {
     Dialog,
     DialogContent,
@@ -36,51 +31,8 @@ import { Textarea } from "../../../components/ui/textarea"
 import { sendToast } from "../../../components/utilis"
 import useAuthStore from "../../../store/useAuthStore"
 import { getCourses, createCourse, updateCourse, deleteCourse } from "../../../api/auth";
+import { CourseActionMenu } from "../../../components/template/ActionMenu"
 
-
-// This is the component to use in your table row
-const CourseActionMenu = ({ course, onEdit, onDelete }) => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const handleEdit = () => {
-        setIsOpen(false); // Close dropdown after action
-        onEdit(course);
-    };
-
-    const handleDelete = () => {
-        setIsOpen(false); // Close dropdown after action
-        onDelete(course);
-    };
-
-    return (
-        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleEdit}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDelete}>
-                    <Trash className="mr-2 h-4 w-4" />
-                    Delete
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
-};
-
-// Usage in your table row:
-// <td className="p-3 text-right">
-//   <CourseActionMenu 
-//     course={course} 
-//     onEdit={openEditModal} 
-//     onDelete={openDeleteModal} 
-//   />
-// </td>
 
 const AdminCourse = () => {
     const { user } = useAuthStore()
@@ -406,7 +358,10 @@ const AdminCourse = () => {
                                                 {new Date(course.createdAt).toLocaleDateString()}
                                             </td>
                                             <td className="p-3 text-right">
-                                                <CourseActionMenu />
+                                                <CourseActionMenu
+                                                    onEdit={() => openEditModal(course)}
+                                                    onDelete={() => openDeleteModal(course)}
+                                                />
                                                 {/* <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button variant="ghost" size="icon">
