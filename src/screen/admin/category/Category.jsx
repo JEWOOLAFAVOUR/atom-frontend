@@ -43,6 +43,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui
 import { Avatar } from "../../../components/ui/avatar"
 import { AvatarFallback, AvatarImage } from "../../../components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select"
+import { CourseActionMenu } from "../../../components/template/ActionMenu"
 
 const AdminCategory = () => {
     const { user } = useAuthStore()
@@ -615,23 +616,10 @@ const AdminCategory = () => {
                                             </td>
                                             <td className="p-3">{new Date(category.createdAt).toLocaleDateString()}</td>
                                             <td className="p-3 text-right">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => openEditModal(category)}>
-                                                            <Edit className="mr-2 h-4 w-4" />
-                                                            Edit
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => openDeleteModal(category)}>
-                                                            <Trash className="mr-2 h-4 w-4" />
-                                                            Delete
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
+                                                <CourseActionMenu
+                                                    onEdit={() => openEditModal(category)}
+                                                    onDelete={() => openDeleteModal(category)}
+                                                />
                                             </td>
                                         </tr>
                                     ))

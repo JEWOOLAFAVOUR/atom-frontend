@@ -38,6 +38,7 @@ import { sendToast } from "../../../components/utilis"
 import useAuthStore from "../../../store/useAuthStore"
 import { createUserByRole, getUsers, updateUser, deleteUser } from "../../../api/auth"
 import { getCourses } from "../../../api/auth"
+import { CourseActionMenu } from "../../../components/template/ActionMenu"
 
 const AdminTutor = () => {
     const { user } = useAuthStore()
@@ -448,23 +449,10 @@ const AdminTutor = () => {
                                                 </Badge>
                                             </td>
                                             <td className="p-3 text-right">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => openEditModal(tutor)}>
-                                                            <Edit className="mr-2 h-4 w-4" />
-                                                            Edit
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => openDeleteModal(tutor)}>
-                                                            <Trash className="mr-2 h-4 w-4" />
-                                                            Delete
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
+                                                <CourseActionMenu
+                                                    onEdit={() => openEditModal(tutor)}
+                                                    onDelete={() => openDeleteModal(tutor)}
+                                                />
                                             </td>
                                         </tr>
                                     ))
