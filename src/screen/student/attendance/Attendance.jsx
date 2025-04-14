@@ -1,24 +1,25 @@
-import React, { useState, useEffect } from "react"
-import { Calendar, Check, ChevronLeft, ChevronRight, Clock, MapPin, User, AlertTriangle, LogIn, LogOut } from "lucide-react"
+"use client"
+
+import { useState, useEffect } from "react"
+import { Calendar, Check, Clock, User, AlertTriangle, LogIn, LogOut } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
-import { getAttendanceClasses, getPastAttendanceSessions, signInAttendance, signOutAttendance } from "../../../api/auth";
+import { getAttendanceClasses, getPastAttendanceSessions, signInAttendance, signOutAttendance } from "../../../api/auth"
+import { sendToast } from "../../../components/utilis"
 
 const AttendancePage = () => {
     const [currentDate] = useState(new Date())
-    const [attendanceCode, setAttendanceCode] = useState("")
+    const [attendanceCodes, setAttendanceCodes] = useState({}) // Store codes by class ID
     const [showSuccess, setShowSuccess] = useState(false)
     const [successMessage, setSuccessMessage] = useState("")
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [attendanceType, setAttendanceType] = useState("signin") // "signin" or "signout"
 
     // State for API data
     const [classes, setClasses] = useState([])
@@ -62,68 +63,92 @@ const AttendancePage = () => {
     }, [])
 
     // Filter classes into current and upcoming
-    const currentClasses = classes.filter(cls => cls.status === "current")
-    const upcomingClasses = classes.filter(cls => cls.status === "upcoming")
+    const currentClasses = classes.filter((cls) => cls.status === "current")
+    const upcomingClasses = classes.filter((cls) => cls.status === "upcoming")
 
-    const handleSubmitAttendanceCode = async (e, classId) => {
+    const handleAttendanceCodeChange = (classId, value) => {
+        setAttendanceCodes((prev) => ({
+            ...prev,
+            [classId]: value,
+        }))
+    }
+
+    const handleSubmitAttendanceCode = async (e, classId, type) => {
         e.preventDefault()
 
-        try {
-            if (attendanceCode.trim().length === 0) return
+        const code = attendanceCodes[classId] || ""
+        if (code.trim().length === 0) return
 
-            let response;
+        try {
+            let response
 
             // Send sign-in or sign-out request based on type
-            if (attendanceType === "signin") {
+            if (type === "signin") {
                 response = await signInAttendance({
-                    signInCode: attendanceCode,
-                    classId: classId
+                    signInCode: code,
+                    classId: classId,
                 })
+                // fetchData()
             } else {
                 response = await signOutAttendance({
-                    signOutCode: attendanceCode,
-                    classId: classId
+                    signOutCode: code,
+                    classId: classId,
                 })
+                // fetchData()
             }
 
             if (response?.data.success) {
                 setShowSuccess(true)
-                setSuccessMessage(`${attendanceType === "signin" ? "Sign-in" : "Sign-out"} marked successfully for ${selectedClass?.topic || 'class'}`)
+                const classInfo = classes.find((c) => c._id === classId)
+                setSuccessMessage(
+                    `${type === "signin" ? "Sign-in" : "Sign-out"} marked successfully for ${classInfo?.topic || "class"}`,
+                )
 
                 // Update classes to reflect attendance marked
-                setClasses(prevClasses =>
-                    prevClasses.map(cls => {
+                setClasses((prevClasses) =>
+                    prevClasses.map((cls) => {
                         if (cls._id === classId) {
                             return {
                                 ...cls,
-                                signInStatus: attendanceType === "signin" ? true : cls.signInStatus,
-                                signOutStatus: attendanceType === "signout" ? true : cls.signOutStatus
+                                attendance: {
+                                    ...cls.attendance,
+                                    isSignedIn: type === "signin" ? true : cls.attendance.isSignedIn,
+                                    isSignedOut: type === "signout" ? true : cls.attendance.isSignedOut,
+                                    status: type === "signout" ? "present" : "partial",
+                                },
                             }
                         }
                         return cls
-                    })
+                    }),
                 )
 
-                // Reset after showing success message
+                // Clear the code for this class
+                setAttendanceCodes((prev) => ({
+                    ...prev,
+                    [classId]: "",
+                }))
+
+                // Reset success message after a delay
                 setTimeout(() => {
                     setShowSuccess(false)
-                    setAttendanceCode("")
                 }, 3000)
+            } else {
+                sendToast("error", response?.data?.message)
             }
         } catch (err) {
-            console.error(`Failed to ${attendanceType}:`, err)
+            console.error(`Failed to ${type}:`, err)
             // Handle error case
         }
     }
 
     const formatDate = (dateString) => {
         const date = new Date(dateString)
-        return date.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
-            hour12: true
+        return date.toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
         })
     }
 
@@ -131,19 +156,22 @@ const AttendancePage = () => {
         const start = new Date(startTime)
         const end = new Date(endTime)
 
-        return `${start.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })} - 
-                ${end.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}`
+        return `${start.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric", hour12: true })} - 
+                ${end.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric", hour12: true })}`
     }
 
-    // Calculate attendance statistics (placeholder - replace with real data)
+    // Calculate attendance statistics
     const attendanceStats = {
-        present: attendanceHistory.filter(record => record.status === "present").length,
-        absent: attendanceHistory.filter(record => record.status === "absent").length,
-        late: attendanceHistory.filter(record => record.status === "partial").length,
+        present: attendanceHistory.filter((record) => record.status === "present").length,
+        absent: attendanceHistory.filter((record) => record.status === "absent").length,
+        late: attendanceHistory.filter((record) => record.status === "partial").length,
         totalClasses: attendanceHistory.length,
-        percentage: attendanceHistory.length > 0
-            ? Math.round((attendanceHistory.filter(record => record.status === "present").length / attendanceHistory.length) * 100)
-            : 0
+        percentage:
+            attendanceHistory.length > 0
+                ? Math.round(
+                    (attendanceHistory.filter((record) => record.status === "present").length / attendanceHistory.length) * 100,
+                )
+                : 0,
     }
 
     if (loading) {
@@ -159,7 +187,7 @@ const AttendancePage = () => {
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold">Attendance</h1>
                 <div className="text-sm text-muted-foreground">
-                    {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                    {currentDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
                 </div>
             </div>
 
@@ -174,9 +202,7 @@ const AttendancePage = () => {
                         <Alert className="bg-green-50 border-green-200">
                             <Check className="h-4 w-4 text-green-600" />
                             <AlertTitle className="text-green-800">Attendance Confirmed!</AlertTitle>
-                            <AlertDescription className="text-green-700">
-                                {successMessage}
-                            </AlertDescription>
+                            <AlertDescription className="text-green-700">{successMessage}</AlertDescription>
                         </Alert>
                     )}
 
@@ -187,9 +213,7 @@ const AttendancePage = () => {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {currentClasses.length === 0 && (
-                                <div className="text-center py-6 text-muted-foreground">
-                                    No current classes available.
-                                </div>
+                                <div className="text-center py-6 text-muted-foreground">No current classes available.</div>
                             )}
 
                             {currentClasses.map((cls) => (
@@ -204,13 +228,13 @@ const AttendancePage = () => {
                                                 </div>
                                             </div>
                                             <div className="flex gap-2">
-                                                <Badge variant={cls.signInStatus ? "outline" : "default"}>
+                                                <Badge variant={cls.attendance?.isSignedIn ? "outline" : "default"}>
                                                     <LogIn className="h-3 w-3 mr-1" />
-                                                    {cls.signInStatus ? "Signed In" : "Not Signed In"}
+                                                    {cls.attendance?.isSignedIn ? "Signed In" : "Not Signed In"}
                                                 </Badge>
-                                                <Badge variant={cls.signOutStatus ? "outline" : "secondary"}>
+                                                <Badge variant={cls.attendance?.isSignedOut ? "outline" : "secondary"}>
                                                     <LogOut className="h-3 w-3 mr-1" />
-                                                    {cls.signOutStatus ? "Signed Out" : "Not Signed Out"}
+                                                    {cls.attendance?.isSignedOut ? "Signed Out" : "Not Signed Out"}
                                                 </Badge>
                                             </div>
                                         </div>
@@ -218,7 +242,7 @@ const AttendancePage = () => {
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 mt-4">
                                             <div className="flex items-center gap-2 text-sm">
                                                 <User className="h-4 w-4 text-muted-foreground" />
-                                                <span>{cls.category?.tutors?.[0]?.firstname} {cls.category?.tutors?.[0]?.lastname}</span>
+                                                <span>{cls.tutor ? `${cls.tutor.firstname} ${cls.tutor.lastname}` : "No tutor assigned"}</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-sm">
                                                 <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -227,18 +251,20 @@ const AttendancePage = () => {
                                         </div>
 
                                         {/* Only show sign-in form if not already signed in */}
-                                        {!cls.signInStatus && (
+                                        {!cls.attendance?.isSignedIn && (
                                             <div className="mt-4 p-3 bg-secondary/20 rounded-md">
-                                                <form onSubmit={(e) => {
-                                                    setSelectedClass(cls);
-                                                    setAttendanceType("signin");
-                                                    handleSubmitAttendanceCode(e, cls._id);
-                                                }} className="space-y-2">
+                                                <form
+                                                    onSubmit={(e) => {
+                                                        setSelectedClass(cls)
+                                                        handleSubmitAttendanceCode(e, cls._id, "signin")
+                                                    }}
+                                                    className="space-y-2"
+                                                >
                                                     <label className="text-sm font-medium">Enter Sign-In Code:</label>
                                                     <div className="flex space-x-2">
                                                         <Input
-                                                            value={attendanceCode}
-                                                            onChange={(e) => setAttendanceCode(e.target.value)}
+                                                            value={attendanceCodes[cls._id] || ""}
+                                                            onChange={(e) => handleAttendanceCodeChange(cls._id, e.target.value)}
                                                             placeholder="Enter the sign-in code provided by your tutor"
                                                             className="flex-1"
                                                         />
@@ -252,18 +278,20 @@ const AttendancePage = () => {
                                         )}
 
                                         {/* Show sign-out form if signed in but not signed out */}
-                                        {cls.signInStatus && !cls.signOutStatus && (
+                                        {cls.attendance?.isSignedIn && !cls.attendance?.isSignedOut && (
                                             <div className="mt-4 p-3 bg-secondary/20 rounded-md">
-                                                <form onSubmit={(e) => {
-                                                    setSelectedClass(cls);
-                                                    setAttendanceType("signout");
-                                                    handleSubmitAttendanceCode(e, cls._id);
-                                                }} className="space-y-2">
+                                                <form
+                                                    onSubmit={(e) => {
+                                                        setSelectedClass(cls)
+                                                        handleSubmitAttendanceCode(e, cls._id, "signout")
+                                                    }}
+                                                    className="space-y-2"
+                                                >
                                                     <label className="text-sm font-medium">Enter Sign-Out Code:</label>
                                                     <div className="flex space-x-2">
                                                         <Input
-                                                            value={attendanceCode}
-                                                            onChange={(e) => setAttendanceCode(e.target.value)}
+                                                            value={attendanceCodes[cls._id] || ""}
+                                                            onChange={(e) => handleAttendanceCodeChange(cls._id, e.target.value)}
                                                             placeholder="Enter the sign-out code provided by your tutor"
                                                             className="flex-1"
                                                         />
@@ -277,7 +305,7 @@ const AttendancePage = () => {
                                         )}
 
                                         {/* Show completion message when both sign-in and sign-out are complete */}
-                                        {cls.signInStatus && cls.signOutStatus && (
+                                        {cls.attendance?.isSignedIn && cls.attendance?.isSignedOut && (
                                             <div className="mt-4 p-3 bg-green-50 rounded-md border border-green-200">
                                                 <div className="flex items-center">
                                                     <Check className="h-5 w-5 text-green-600 mr-2" />
@@ -314,7 +342,9 @@ const AttendancePage = () => {
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 mt-2">
                                                         <div className="flex items-center gap-2 text-sm">
                                                             <User className="h-4 w-4 text-muted-foreground" />
-                                                            <span>{cls.category?.tutors?.[0]?.firstname} {cls.category?.tutors?.[0]?.lastname}</span>
+                                                            <span>
+                                                                {cls.tutor ? `${cls.tutor.firstname} ${cls.tutor.lastname}` : "No tutor assigned"}
+                                                            </span>
                                                         </div>
                                                         <div className="flex items-center gap-2 text-sm">
                                                             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -340,21 +370,29 @@ const AttendancePage = () => {
                             </CardHeader>
                             <CardContent>
                                 {attendanceHistory.length === 0 ? (
-                                    <div className="text-center py-6 text-muted-foreground">
-                                        No attendance history available.
-                                    </div>
+                                    <div className="text-center py-6 text-muted-foreground">No attendance history available.</div>
                                 ) : (
                                     <div className="space-y-4">
                                         {attendanceHistory.map((record, index) => (
-                                            <div key={index} className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0">
+                                            <div
+                                                key={index}
+                                                className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0"
+                                            >
                                                 <div>
                                                     <div className="font-medium">{record.class || record.classSession?.topic}</div>
-                                                    <div className="text-sm text-muted-foreground">{formatDate(record.date || record.createdAt)}</div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        {formatDate(record.date || record.createdAt)}
+                                                    </div>
                                                 </div>
-                                                <Badge variant={
-                                                    record.status === "present" ? "outline" :
-                                                        record.status === "partial" ? "secondary" : "destructive"
-                                                }>
+                                                <Badge
+                                                    variant={
+                                                        record.status === "present"
+                                                            ? "outline"
+                                                            : record.status === "partial"
+                                                                ? "secondary"
+                                                                : "destructive"
+                                                    }
+                                                >
                                                     {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
                                                 </Badge>
                                             </div>
@@ -406,8 +444,8 @@ const AttendancePage = () => {
                                         <div>
                                             <p className="text-sm font-medium">Attendance Policy</p>
                                             <p className="text-xs text-muted-foreground">
-                                                Minimum 80% attendance required to qualify for certification.
-                                                Current status: <span className="font-medium text-green-600">
+                                                Minimum 80% attendance required to qualify for certification. Current status:{" "}
+                                                <span className="font-medium text-green-600">
                                                     {attendanceStats.percentage >= 80 ? "Good Standing" : "Below Required"}
                                                 </span>
                                             </p>
@@ -423,8 +461,7 @@ const AttendancePage = () => {
     )
 }
 
-export default AttendancePage;
-
+export default AttendancePage
 
 
 

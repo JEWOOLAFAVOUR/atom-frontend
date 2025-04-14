@@ -87,7 +87,7 @@ const ClassSchedulePage = () => {
             case "completed":
                 return <Badge variant="secondary">Completed</Badge>;
             default:
-                return <Badge variant="outline">Unknown</Badge>;
+                return <Badge variant="outline">Completed</Badge>;
         }
     };
 
