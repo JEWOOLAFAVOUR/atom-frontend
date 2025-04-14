@@ -202,7 +202,7 @@ const ClassSchedulePage = () => {
                                                                 <span>{classItem.students?.length || 0} Students</span>
                                                             </div>
 
-                                                            <div className="flex justify-end md:col-span-2 mt-2">
+                                                            {/* <div className="flex justify-end md:col-span-2 mt-2">
                                                                 <Button variant="outline" size="sm" className="gap-1">
                                                                     View Details
                                                                 </Button>
@@ -211,7 +211,7 @@ const ClassSchedulePage = () => {
                                                                         Join Class
                                                                     </Button>
                                                                 )}
-                                                            </div>
+                                                            </div> */}
                                                         </div>
                                                     </CardContent>
                                                 </Card>
