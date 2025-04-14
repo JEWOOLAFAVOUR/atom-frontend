@@ -146,6 +146,10 @@ export const getPastAttendanceSessions = async () => {
     return await makeApiRequest('GET', '/organization/attendance/past',);
 };
 
+export const getAttendanceClasses = async () => {
+    return await makeApiRequest('GET', '/organization/attendance/classes',);
+};
+
 export const closeAttendance = async (sessionId) => {
     return await makeApiRequest('POST', `/organization/attendance/close/${sessionId}`,);
 };
