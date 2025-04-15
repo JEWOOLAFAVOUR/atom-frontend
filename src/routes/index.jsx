@@ -135,6 +135,10 @@ const Routes = () => {
                             path: "categories",
                             element: <AdminCategory />,
                         },
+                        {
+                            path: "categories/:categoryId",
+                            element: <AdminCategory />,
+                        },
                         // Tutor routes
                         {
                             path: "schedule",

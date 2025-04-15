@@ -175,6 +175,10 @@ export const createCategories = async (data) => {
     return await makeApiRequest('POST', `/organization/categories`, data);
 };
 
+export const getCategoryId = async (categoryId) => {
+    return await makeApiRequest('GET', `/organization/categories/${categoryId}`);
+};
+
 export const editCategories = async (data, categoryId) => {
     return await makeApiRequest('PUT', `/organization/categories/${categoryId}`, data);
 };
