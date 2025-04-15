@@ -213,7 +213,7 @@ const ClassDetails = () => {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" onClick={() => navigate("/dashboard/classes")} className="h-8 w-8">
+                    <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <div>

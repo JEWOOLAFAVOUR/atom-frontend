@@ -626,7 +626,7 @@ const AdminClassDashboard = () => {
                                                     }}
                                                 >
                                                     <div className="flex flex-col sm:flex-row justify-between">
-                                                        <div className="space-y-1">
+                                                        <div onClick={() => navigate(`/dashboard/schedule/${cls?._id}`)} className="space-y-1 cursor-pointer">
                                                             <div className="flex items-center gap-2">
                                                                 <h3 className="font-semibold text-lg">{cls.topic}</h3>
                                                                 <Badge variant={getStatusBadge(cls.status)}>
