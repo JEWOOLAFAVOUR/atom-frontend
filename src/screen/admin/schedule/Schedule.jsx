@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import {
     CalendarIcon,
@@ -44,9 +42,11 @@ import {
 import { getClass, updateClass, deleteClass, getUsers, createClass, getCategories } from "../../../api/auth"
 import { sendToast } from "../../../components/utilis"
 import useAuthStore from "../../../store/useAuthStore"
+import { useNavigate } from "react-router-dom"
 
 const AdminClassDashboard = () => {
     const { user } = useAuthStore()
+    const navigate = useNavigate();
     // console.log('...................................', user)
     const [isLoading, setIsLoading] = useState(true)
     const [classes, setClasses] = useState([])

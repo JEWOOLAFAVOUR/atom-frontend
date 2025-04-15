@@ -163,7 +163,7 @@ const CategoryDetails = () => {
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="students">Students ({category.students?.length || 0})</TabsTrigger>
                     <TabsTrigger value="tutors">Tutors ({category.tutors?.length || 0})</TabsTrigger>
-                    <TabsTrigger value="sessions">Sessions ({category.sessions?.length || 0})</TabsTrigger>
+                    <TabsTrigger value="sessions">Classes ({category.sessions?.length || 0})</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
@@ -244,7 +244,7 @@ const CategoryDetails = () => {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <Calendar className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-sm font-medium">Sessions</span>
+                                            <span className="text-sm font-medium">Classes</span>
                                         </div>
                                         <Badge variant="outline">{category.sessions?.length || 0}</Badge>
                                     </div>
@@ -261,7 +261,7 @@ const CategoryDetails = () => {
                     {category.sessions && category.sessions.length > 0 && (
                         <Card>
                             <CardHeader>
-                                <CardTitle>Recent Sessions</CardTitle>
+                                <CardTitle>Recent Classes</CardTitle>
                                 <CardDescription>The most recent sessions for this category</CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -303,7 +303,7 @@ const CategoryDetails = () => {
                             </CardContent>
                             <CardFooter>
                                 <Button variant="outline" className="w-full" onClick={() => setActiveTab("sessions")}>
-                                    View All Sessions
+                                    View All Classes
                                 </Button>
                             </CardFooter>
                         </Card>
@@ -453,8 +453,8 @@ const CategoryDetails = () => {
                 <TabsContent value="sessions">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Sessions</CardTitle>
-                            <CardDescription>All sessions for this category</CardDescription>
+                            <CardTitle>Classes</CardTitle>
+                            <CardDescription>All classes for this category</CardDescription>
                         </CardHeader>
                         <CardContent>
                             {category.sessions && category.sessions.length > 0 ? (

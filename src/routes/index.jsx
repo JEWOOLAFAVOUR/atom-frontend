@@ -19,6 +19,7 @@ import AdminClassDashboard from "../screen/admin/schedule/Schedule"
 import TutorAttendancePage from "../screen/tutor/attendance/Attendance"
 import AdminCategory from "../screen/admin/category/Category"
 import CategoryDetails from "../screen/admin/category/CategoryDetails"
+import ClassDetails from "../screen/admin/schedule/ClassDetails"
 
 const ScrollToTop = () => {
     const { pathname } = useLocation()
@@ -144,6 +145,10 @@ const Routes = () => {
                         {
                             path: "schedule",
                             element: <ClassHandler />,
+                        },
+                        {
+                            path: "schedule/:classId",
+                            element: <ClassDetails />,
                         },
                         {
                             path: "projects",

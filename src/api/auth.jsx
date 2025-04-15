@@ -110,6 +110,11 @@ export const getClass = async (params = {}) => {
     return await makeApiRequest('GET', endpoint);
 };
 
+
+export const getClassDetails = async (classId) => {
+    return await makeApiRequest('GET', `/organization/classes/${classId}`,);
+};
+
 export const updateClass = async (classId, data) => {
     return await makeApiRequest('PUT', `/organization/classes/${classId}`, data);
 };
