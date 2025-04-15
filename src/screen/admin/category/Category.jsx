@@ -36,9 +36,11 @@ import { Avatar } from "../../../components/ui/avatar"
 import { AvatarFallback, AvatarImage } from "../../../components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select"
 import { CourseActionMenu } from "../../../components/template/ActionMenu"
+import { useNavigate } from "react-router-dom"
 
 const AdminCategory = () => {
-    const { user } = useAuthStore()
+    const { user } = useAuthStore();
+    const navigate = useNavigate();
 
     // State variables
     const [categories, setCategories] = useState([])
@@ -574,7 +576,7 @@ const AdminCategory = () => {
                                 ) : categories.length > 0 ? (
                                     categories.map((category) => (
                                         <tr key={category._id} className="border-b">
-                                            <td className="p-3">
+                                            <td onClick={() => navigate(`/dashboard/categories/${category?._id}`)} className="p-3 cursor-pointer">
                                                 <div className="flex items-center gap-3">
                                                     <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                                                         <FolderOpen className="h-4 w-4 text-primary" />
@@ -584,29 +586,29 @@ const AdminCategory = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="p-3 text-muted-foreground hidden md:table-cell">
+                                            <td onClick={() => navigate(`/dashboard/categories/${category?._id}`)} className="p-3 text-muted-foreground hidden md:table-cell cursor-pointer">
                                                 {category.description
                                                     ? category.description.length > 60
                                                         ? `${category.description.substring(0, 60)}...`
                                                         : category.description
                                                     : "No description available"}
                                             </td>
-                                            <td className="p-3 text-muted-foreground hidden md:table-cell">
+                                            <td onClick={() => navigate(`/dashboard/categories/${category?._id}`)} className="p-3 text-muted-foreground hidden md:table-cell cursor-pointer">
                                                 {category.course?.name || "No course assigned"}
                                             </td>
-                                            <td className="p-3">
+                                            <td onClick={() => navigate(`/dashboard/categories/${category?._id}`)} className="p-3 cursor-pointer">
                                                 <div className="flex items-center">
                                                     <Users className="h-4 w-4 mr-1 text-muted-foreground" />
                                                     <span>{category.students?.length || 0}</span>
                                                 </div>
                                             </td>
-                                            <td className="p-3">
+                                            <td onClick={() => navigate(`/dashboard/categories/${category?._id}`)} className="p-3 cursor-pointer">
                                                 <div className="flex items-center">
                                                     <Users className="h-4 w-4 mr-1 text-muted-foreground" />
                                                     <span>{category.tutors?.length || 0}</span>
                                                 </div>
                                             </td>
-                                            <td className="p-3">{new Date(category.createdAt).toLocaleDateString()}</td>
+                                            <td onClick={() => navigate(`/dashboard/categories/${category?._id}`)} className="p-3 cursor-pointer">{new Date(category.createdAt).toLocaleDateString()}</td>
                                             <td className="p-3 text-right">
                                                 <CourseActionMenu
                                                     onEdit={() => openEditModal(category)}
