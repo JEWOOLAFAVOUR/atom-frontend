@@ -221,7 +221,7 @@ const AdminStudentDetails = () => {
                                 <CardTitle>Profile</CardTitle>
                                 <CardDescription>Student information and details</CardDescription>
                             </div>
-                            <DropdownMenu>
+                            {/* <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon">
                                         <MoreHorizontal className="h-4 w-4" />
@@ -242,7 +242,7 @@ const AdminStudentDetails = () => {
                                         Send Message
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
-                            </DropdownMenu>
+                            </DropdownMenu> */}
                         </div>
                     </CardHeader>
                     <CardContent className="pt-4">

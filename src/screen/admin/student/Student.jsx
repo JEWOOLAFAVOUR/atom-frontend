@@ -1,25 +1,10 @@
+"use client"
+
 import { useState, useEffect } from "react"
-import {
-    Search,
-    MoreHorizontal,
-    Download,
-    Filter,
-    ChevronLeft,
-    ChevronRight,
-    Trash,
-    Edit,
-    User,
-    UserPlus,
-} from "lucide-react"
+import { Search, Download, Filter, ChevronLeft, ChevronRight, User, UserPlus } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
 import { Button } from "../../../components/ui/button"
 import { Input } from "../../../components/ui/input"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "../../../components/ui/dropdown-menu"
 import {
     Dialog,
     DialogContent,
@@ -39,10 +24,9 @@ import { getCourses } from "../../../api/auth"
 import { useNavigate } from "react-router-dom"
 import { CourseActionMenu } from "../../../components/template/ActionMenu"
 
-
 const AdminStudent = () => {
     const { user } = useAuthStore()
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
     // State variables
     const [students, setStudents] = useState([])
@@ -416,9 +400,17 @@ const AdminStudent = () => {
                                     </tr>
                                 ) : students.length > 0 ? (
                                     students.map((student) => (
-                                        <tr onClick={() => navigate(`/dashboard/students/${student?._id}`)} key={student._id} className="border-b cursor-pointer">
-                                            <td className="p-3 font-mono text-sm">{student._id.substring(0, 6)}</td>
-                                            <td className="p-3">
+                                        <tr key={student._id} className="border-b">
+                                            <td
+                                                className="p-3 font-mono text-sm cursor-pointer"
+                                                onClick={() => navigate(`/dashboard/students/${student?._id}`)}
+                                            >
+                                                {student._id.substring(0, 6)}
+                                            </td>
+                                            <td
+                                                className="p-3 cursor-pointer"
+                                                onClick={() => navigate(`/dashboard/students/${student?._id}`)}
+                                            >
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-8 w-8">
                                                         <AvatarFallback className="bg-primary/10 text-primary">
@@ -434,8 +426,16 @@ const AdminStudent = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="p-3 text-muted-foreground hidden md:table-cell">{student.email}</td>
-                                            <td className="p-3 hidden lg:table-cell">
+                                            <td
+                                                className="p-3 text-muted-foreground hidden md:table-cell cursor-pointer"
+                                                onClick={() => navigate(`/dashboard/students/${student?._id}`)}
+                                            >
+                                                {student.email}
+                                            </td>
+                                            <td
+                                                className="p-3 hidden lg:table-cell cursor-pointer"
+                                                onClick={() => navigate(`/dashboard/students/${student?._id}`)}
+                                            >
                                                 {student.course ? (
                                                     <Badge variant="outline" className="bg-primary/5 text-primary font-normal">
                                                         {typeof student.course === "object" ? student.course.name : "Assigned"}
@@ -444,14 +444,12 @@ const AdminStudent = () => {
                                                     <span className="text-muted-foreground text-sm">Not assigned</span>
                                                 )}
                                             </td>
-                                            <td className="p-3 text-muted-foreground hidden lg:table-cell">
+                                            <td
+                                                className="p-3 text-muted-foreground hidden lg:table-cell cursor-pointer"
+                                                onClick={() => navigate(`/dashboard/students/${student?._id}`)}
+                                            >
                                                 {new Date(student.createdAt).toLocaleDateString()}
                                             </td>
-                                            {/* <td className="p-3">
-                                                <Badge variant={student.verified ? "success" : "secondary"}>
-                                                    {student.verified ? "Verified" : "Pending"}
-                                                </Badge>
-                                            </td> */}
                                             <td className="p-3 text-right">
                                                 <CourseActionMenu
                                                     onEdit={() => openEditModal(student)}
