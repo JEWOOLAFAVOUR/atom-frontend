@@ -43,6 +43,7 @@ import { getClass, updateClass, deleteClass, getUsers, createClass, getCategorie
 import { sendToast } from "../../../components/utilis"
 import useAuthStore from "../../../store/useAuthStore"
 import { useNavigate } from "react-router-dom"
+import { CourseActionMenu } from "../../../components/template/ActionMenu"
 
 const AdminClassDashboard = () => {
     const { user } = useAuthStore()
@@ -640,44 +641,15 @@ const AdminClassDashboard = () => {
                                                             <p className="text-sm text-muted-foreground line-clamp-1">{cls.description}</p>
                                                         </div>
                                                         <div className="flex items-center mt-2 sm:mt-0">
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <Button variant="ghost" size="sm">
-                                                                        <MoreVertical className="h-4 w-4" />
-                                                                    </Button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent align="end">
-                                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                                    <DropdownMenuSeparator />
-                                                                    <DropdownMenuItem onClick={() => openDetailsDialog(cls)}>
-                                                                        <Info className="h-4 w-4 mr-2" />
-                                                                        View Details
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem onClick={() => openEditDialog(cls)}>
-                                                                        <Edit className="h-4 w-4 mr-2" />
-                                                                        Edit Class
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem onClick={() => handleDeleteClass(cls._id)} className="text-red-600">
-                                                                        <Trash2 className="h-4 w-4 mr-2" />
-                                                                        Delete Class
-                                                                    </DropdownMenuItem>
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
+                                                            <CourseActionMenu
+                                                                onEdit={() => openEditDialog(cls)}
+                                                                onDelete={() => handleDeleteClass(cls._id)}
+                                                            />
+
                                                         </div>
                                                     </div>
-                                                    {/* 8. Update the class card display to show category instead of tutor and course */}
-                                                    {/* In the class card display, replace: */}
-                                                    {/* <div className="flex items-center gap-2 text-sm">
-                                                        <User className="h-4 w-4 text-muted-foreground" />
-                                                        <span>
-                                                            {cls.tutor?.firstname && cls.tutor?.lastname
-                                                                ? `${cls.tutor.firstname} ${cls.tutor.lastname}`
-                                                                : "Not specified"}
-                                                        </span>
-                                                    </div> */}
 
-                                                    {/* With: */}
-                                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-2 gap-x-4 mt-4">
+                                                    <div onClick={() => navigate(`/dashboard/schedule/${cls?._id}`)} className=" cursor-pointer grid grid-cols-1 sm:grid-cols-3 gap-y-2 gap-x-4 mt-4">
                                                         <div className="flex items-center gap-2 text-sm">
                                                             <Clock className="h-4 w-4 text-muted-foreground" />
                                                             <span>
@@ -940,3 +912,66 @@ const AdminClassDashboard = () => {
 }
 
 export default AdminClassDashboard
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/* <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button variant="ghost" size="sm">
+                                                                        <MoreVertical className="h-4 w-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                                    <DropdownMenuSeparator />
+                                                                    <DropdownMenuItem onClick={() => openDetailsDialog(cls)}>
+                                                                        <Info className="h-4 w-4 mr-2" />
+                                                                        View Details
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem onClick={() => openEditDialog(cls)}>
+                                                                        <Edit className="h-4 w-4 mr-2" />
+                                                                        Edit Class
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem onClick={() => handleDeleteClass(cls._id)} className="text-red-600">
+                                                                        <Trash2 className="h-4 w-4 mr-2" />
+                                                                        Delete Class
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu> */}
+{/* 8. Update the class card display to show category instead of tutor and course */ }
+{/* In the class card display, replace: */ }
+{/* <div className="flex items-center gap-2 text-sm">
+                                                        <User className="h-4 w-4 text-muted-foreground" />
+                                                        <span>
+                                                            {cls.tutor?.firstname && cls.tutor?.lastname
+                                                                ? `${cls.tutor.firstname} ${cls.tutor.lastname}`
+                                                                : "Not specified"}
+                                                        </span>
+                                                    </div> */}
+
+{/* With: */ }
