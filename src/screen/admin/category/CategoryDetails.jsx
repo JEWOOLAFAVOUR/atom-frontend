@@ -293,7 +293,7 @@ const CategoryDetails = () => {
                                                 variant="outline"
                                                 size="sm"
                                                 className="mt-3 sm:mt-0"
-                                                onClick={() => navigate(`/dashboard/sessions/${session._id}`)}
+                                                onClick={() => navigate(`/dashboard/schedule/${session._id}`)}
                                             >
                                                 View Details
                                             </Button>
@@ -516,7 +516,7 @@ const CategoryDetails = () => {
                                                         </div>
                                                     </div>
 
-                                                    <Button onClick={() => navigate(`/dashboard/sessions/${session._id}`)} className="shrink-0">
+                                                    <Button onClick={() => navigate(`/dashboard/schedule/${session._id}`)} className="shrink-0">
                                                         View Session
                                                     </Button>
                                                 </div>
