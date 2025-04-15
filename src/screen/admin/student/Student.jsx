@@ -37,6 +37,7 @@ import useAuthStore from "../../../store/useAuthStore"
 import { createUserByRole, getUsers, updateUser, deleteUser } from "../../../api/auth"
 import { getCourses } from "../../../api/auth"
 import { useNavigate } from "react-router-dom"
+import { CourseActionMenu } from "../../../components/template/ActionMenu"
 
 
 const AdminStudent = () => {
@@ -402,7 +403,7 @@ const AdminStudent = () => {
                                     <th className="p-3 text-left font-medium hidden md:table-cell">Email</th>
                                     <th className="p-3 text-left font-medium hidden lg:table-cell">Course</th>
                                     <th className="p-3 text-left font-medium hidden lg:table-cell">Join Date</th>
-                                    <th className="p-3 text-left font-medium">Status</th>
+                                    {/* <th className="p-3 text-left font-medium">Status</th> */}
                                     <th className="p-3 text-right font-medium">Actions</th>
                                 </tr>
                             </thead>
@@ -446,29 +447,16 @@ const AdminStudent = () => {
                                             <td className="p-3 text-muted-foreground hidden lg:table-cell">
                                                 {new Date(student.createdAt).toLocaleDateString()}
                                             </td>
-                                            <td className="p-3">
+                                            {/* <td className="p-3">
                                                 <Badge variant={student.verified ? "success" : "secondary"}>
                                                     {student.verified ? "Verified" : "Pending"}
                                                 </Badge>
-                                            </td>
+                                            </td> */}
                                             <td className="p-3 text-right">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => openEditModal(student)}>
-                                                            <Edit className="mr-2 h-4 w-4" />
-                                                            Edit
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => openDeleteModal(student)}>
-                                                            <Trash className="mr-2 h-4 w-4" />
-                                                            Delete
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
+                                                <CourseActionMenu
+                                                    onEdit={() => openEditModal(student)}
+                                                    onDelete={() => openDeleteModal(student)}
+                                                />
                                             </td>
                                         </tr>
                                     ))

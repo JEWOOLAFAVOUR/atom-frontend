@@ -182,3 +182,7 @@ export const editCategories = async (data, categoryId) => {
 export const generateCode = async (sessionId) => {
     return await makeApiRequest('POST', `/organization/attendance/generate-code/${sessionId}`,);
 };
+
+export const getUserDetails = async (studentId) => {
+    return await makeApiRequest('GET', `/organization/users/${studentId}`,);
+};
