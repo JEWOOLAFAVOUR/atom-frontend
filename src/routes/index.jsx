@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { createBrowserRouter, RouterProvider, useLocation } from "react-router-dom"
-import HomePage from "../screen/Auth/HomePage"
+// import HomePage from "../screen/Auth/HomePage"
 import ProtectedRoute from "./protectedRoute"
 import DashboardLayout from "../screen/dashboard/DashboardLayout"
 import AdminDashboard from "../screen/admin/dashboard/Dashboard"
