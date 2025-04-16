@@ -2,7 +2,8 @@ import axios from "axios";
 import useAuthStore from "../store/useAuthStore";
 
 
-const BASE_URL = 'http://localhost:8000/api/v1';
+// const BASE_URL = 'http://localhost:8000/api/v1';
+const BASE_URL = 'https://atom-backend-07sh.onrender.com/api/v1';
 
 const client = axios.create({ baseURL: BASE_URL });
 
